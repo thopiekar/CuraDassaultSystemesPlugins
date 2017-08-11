@@ -110,7 +110,7 @@ class SolidWorksReader(CommonCOMReader):
 
     def closeApp(self, **options):
         if "app_instance" in options.keys():
-            del options["app_instance"]
+            pass
 
     def walkComponentsInAssembly(self, root = None):
         if root is None:
@@ -149,8 +149,8 @@ class SolidWorksReader(CommonCOMReader):
         else:
             raise NotImplementedError("Unknown extension. Something went terribly wrong!")
 
-        #options["sw_model"] = options["app_instance"].OpenDoc(options["foreignFile"], filetype)
         documentSpecification = options["app_instance"].GetOpenDocSpec(options["foreignFile"])
+        filename = os.path.split(options["foreignFile"])[1]
 
         ## NOTE: SPEC: FileName
         #documentSpecification.FileName
@@ -176,6 +176,10 @@ class SolidWorksReader(CommonCOMReader):
             Please check, whether it is possible to open your file in SolidWorks itself without any problems as well!" % (self._app_friendly_name)))
             error_message.show()
 
+        error, model_pointer = options["app_instance"].ActivateDoc3(filename, True, SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc)
+        if model_pointer is None:
+            raise ValueError("No pointer has been returned by ActivateDoc3. Something went totally wrong!")
+        Logger.log("i", "Active document is now: <%s>", options["app_instance"].IActiveDoc2.GetPathName())
         # Might be useful in the future, but no need for this ATM
         #self.configuration = self.model.getActiveConfiguration
         #self.root_component = self.configuration.GetRootComponent

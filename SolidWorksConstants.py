@@ -2,6 +2,11 @@
 
 
 class SolidWorksEnums:
+    class swRebuildOnActivation_e:
+        swUserDecision = 0
+        swDontRebuildActiveDoc = 1
+        swRebuildActiveDoc = 2
+    
     class swUserPreferenceToggle_e:
         swSTLBinaryFormat = 69
 

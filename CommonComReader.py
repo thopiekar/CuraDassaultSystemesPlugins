@@ -3,6 +3,7 @@
 # Buildins
 import os
 import tempfile
+import threading
 
 # Uranium/Cura
 from UM.Application import Application
@@ -20,6 +21,8 @@ from comtypes.client import GetClassObject
 
 
 class CommonCOMReader(MeshReader):
+    conversion_lock = threading.Lock()
+    
     def __init__(self, app_name, app_friendly_name):
         super().__init__()
         self._app_name = app_name
@@ -125,19 +128,21 @@ class CommonCOMReader(MeshReader):
         return node
 
     def read(self, file_path):
-        # make sure to initialize and de-initialize COM
-        comtypes.CoInitializeEx(comtypes.COINIT_MULTITHREADED)
         try:
+            # Let's convert only one file at a time!
+            self.conversion_lock.acquire()
+            
             return self._read(file_path)
         finally:
-            comtypes.CoUninitialize()
+            self.conversion_lock.release()
 
     def _read(self, file_path):
         options = {"foreignFile": file_path,
                    "foreignFormat": os.path.splitext(file_path)[1],
                    }
 
-        # Starting app, if needed
+        # Starting app and Coinit before
+        comtypes.CoInitializeEx(comtypes.COINIT_MULTITHREADED)
         try:
             options["app_instance"] = self.startApp()
         except Exception:
@@ -209,6 +214,12 @@ class CommonCOMReader(MeshReader):
 
         # Closing the app again..
         self.closeApp(**options)
+
+        comtypes.CoUninitialize()
+        
+        # Nuke the instance!
+        if "app_instance" in options.keys():
+            del options["app_instance"]
 
         scene_node = SceneNode()
         if temp_scene_node is None:
