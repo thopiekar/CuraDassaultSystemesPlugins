@@ -178,14 +178,10 @@ class SolidWorksReader(CommonCOMReader):
             Please check, whether it is possible to open your file in SolidWorks itself without any problems as well!" ))
             error_message.show()
 
-        try:
-            error, model_pointer = options["app_instance"].ActivateDoc3(filename, True, SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc)
-            if model_pointer is None:
-                raise ValueError("No pointer has been returned by ActivateDoc3. Something went totally wrong!")
-            Logger.log("i", "Active document is now: <%s>", options["app_instance"].IActiveDoc2.GetPathName())
-        except:
-            Logger.log("d", "Activating the document failed. A patch in comtypes is needed to fix that!")
-
+        error, model_pointer = options["app_instance"].ActivateDoc3(filename, True, SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc)
+        if model_pointer is None:
+            raise ValueError("No pointer has been returned by ActivateDoc3. Something went totally wrong!")
+        Logger.log("i", "Active document is now: <%s>", options["app_instance"].IActiveDoc2.GetPathName())
         # Might be useful in the future, but no need for this ATM
         #self.configuration = self.model.getActiveConfiguration
         #self.root_component = self.configuration.GetRootComponent
