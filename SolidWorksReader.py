@@ -5,6 +5,7 @@
 
 # Build-ins
 import math
+import os
 
 # Uranium/Cura
 from UM.i18n import i18nCatalog
@@ -110,6 +111,7 @@ class SolidWorksReader(CommonCOMReader):
 
     def closeApp(self, **options):
         if "app_instance" in options.keys():
+            #options["app_instance"].CloseAllDocuments(True) # Ensures that all docs have been closed!
             pass
 
     def walkComponentsInAssembly(self, root = None):
@@ -173,13 +175,17 @@ class SolidWorksReader(CommonCOMReader):
         if documentSpecification.Error:
             Logger.log("e", "Errors happened while opening your SolidWorks file!")
             error_message = Message(i18n_catalog.i18nc("@info:status", "Errors appeared while opening your SolidWorks file! \
-            Please check, whether it is possible to open your file in SolidWorks itself without any problems as well!" % (self._app_friendly_name)))
+            Please check, whether it is possible to open your file in SolidWorks itself without any problems as well!" ))
             error_message.show()
 
-        error, model_pointer = options["app_instance"].ActivateDoc3(filename, True, SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc)
-        if model_pointer is None:
-            raise ValueError("No pointer has been returned by ActivateDoc3. Something went totally wrong!")
-        Logger.log("i", "Active document is now: <%s>", options["app_instance"].IActiveDoc2.GetPathName())
+        try:
+            error, model_pointer = options["app_instance"].ActivateDoc3(filename, True, SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc)
+            if model_pointer is None:
+                raise ValueError("No pointer has been returned by ActivateDoc3. Something went totally wrong!")
+            Logger.log("i", "Active document is now: <%s>", options["app_instance"].IActiveDoc2.GetPathName())
+        except:
+            Logger.log("d", "Activating the document failed. A patch in comtypes is needed to fix that!")
+
         # Might be useful in the future, but no need for this ATM
         #self.configuration = self.model.getActiveConfiguration
         #self.root_component = self.configuration.GetRootComponent
@@ -225,7 +231,8 @@ class SolidWorksReader(CommonCOMReader):
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, swSTLComponentsIntoOneFileBackup)
 
     def closeForeignFile(self, **options):
-        options["app_instance"].CloseDoc(options["foreignFile"])
+        #options["app_instance"].CloseDoc(options["foreignFile"])
+        options["app_instance"].QuitDoc(options["foreignFile"])
 
     ## TODO: A functionality like this needs to come back as soon as we have something like a dependency resolver for plugins.
     #def areReadersAvailable(self):
@@ -233,7 +240,7 @@ class SolidWorksReader(CommonCOMReader):
 
     def nodePostProcessing(self, node):
         # TODO: Investigate how the status is on SolidWorks 2018 (now beta)
-        if self._revision_major == 24: # Known problem under SolidWorks 2016 until 2017: Exported models are rotated by -90 degrees. This rotates it back!
+        if self._revision_major >= 24: # Known problem under SolidWorks 2016 until 2017: Exported models are rotated by -90 degrees. This rotates it back!
             rotation = Quaternion.fromAngleAxis(math.radians(90), Vector.Unit_X)
             node.rotate(rotation)
         return node

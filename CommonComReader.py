@@ -192,7 +192,6 @@ class CommonCOMReader(MeshReader):
 
             # Opening the resulting file in Cura
             try:
-                #reader = self._readerForFileformat[fileFormat]
                 reader = Application.getInstance().getMeshFileHandler().getReaderForFile(options["tempFile"])
                 if not reader:
                     Logger.log("d", "Found no reader for %s. That's strange...", file_format)
