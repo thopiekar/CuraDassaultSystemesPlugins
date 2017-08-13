@@ -18,7 +18,7 @@ from UM.PluginRegistry import PluginRegistry
 
 # Our plugin
 from .CommonComReader import CommonCOMReader
-from .SolidWorksConstants import SolidWorksEnums
+from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions
 from .SolidWorksReaderUI import SolidWorksReaderUI
 
 i18n_catalog = i18nCatalog("CuraSolidWorksIntegrationPlugin")
@@ -91,7 +91,7 @@ class SolidWorksReader(CommonCOMReader):
 
         # Getting revision after starting
         revision_number = app_instance.RevisionNumber()
-        Logger.log("d", "SolidWorks RevisionNumber: %s", revision_number)
+        Logger.log("d", "Running: %s", SolidWorkVersions.major_version_name[revision_number])
         self._revision = [int(x) for x in revision_number.split(".")]
         self._revision_major = self._revision[0]
         self._revision_minor = self._revision[1]
