@@ -6,6 +6,7 @@
 # Build-ins
 import math
 import os
+import winreg
 
 # Uranium/Cura
 from UM.i18n import i18nCatalog
