@@ -4,6 +4,7 @@
 import os
 import tempfile
 import threading
+import uuid
 
 # Uranium/Cura
 from UM.Application import Application
@@ -86,21 +87,13 @@ class CommonCOMReader(MeshReader):
         
         return _reader_for_file_format
 
-    def getSaveTempfileName(self, suffix = ""):
-        # Only get a save name for a temp_file here...
-        temp_stl_file = tempfile.NamedTemporaryFile()
-        temp_stl_file_name = "{}{}".format(temp_stl_file.name, suffix)
-        temp_stl_file.close()
-
-        return temp_stl_file_name
-
-    def startApp(self, visible = False):
+    def startApp(self, options):
         Logger.log("d", "Starting %s...", self._app_friendly_name)
 
         com_class_object = GetClassObject(self._app_name)
-        com_instance = com_class_object.CreateInstance()
+        options["app_instance"] = com_class_object.CreateInstance()
 
-        return com_instance
+        return options
 
     def checkApp(self):
         raise NotImplementedError("Checking app is not implemented!")
@@ -108,20 +101,20 @@ class CommonCOMReader(MeshReader):
     def getAppVisible(self, state):
         raise NotImplementedError("Toggle for visibility not implemented!")
 
-    def setAppVisible(self, state, **options):
+    def setAppVisible(self, state, options):
         raise NotImplementedError("Toggle for visibility not implemented!")
 
-    def closeApp(self, **options):
+    def closeApp(self, options):
         raise NotImplementedError("Procedure how to close your app is not implemented!")
 
-    def openForeignFile(self, **options):
+    def openForeignFile(self, options):
         "This function shall return options again. It optionally contains other data, which is needed by the reader for other tasks later."
         raise NotImplementedError("Opening files is not implemented!")
 
-    def exportFileAs(self, model, **options):
+    def exportFileAs(self, model, options):
         raise NotImplementedError("Exporting files is not implemented!")
 
-    def closeForeignFile(self, **options):
+    def closeForeignFile(self, options):
         raise NotImplementedError("Closing files is not implemented!")
 
     def nodePostProcessing(self, node):
@@ -144,7 +137,7 @@ class CommonCOMReader(MeshReader):
         # Starting app and Coinit before
         comtypes.CoInitializeEx(comtypes.COINIT_MULTITHREADED)
         try:
-            options["app_instance"] = self.startApp()
+            options = self.startApp(options)
         except Exception:
             Logger.logException("e", "Failed to start <%s>...", self._app_name)
             error_message = Message(i18n_catalog.i18nc("@info:status", "Error while starting {}!".format(self._app_friendly_name)))
@@ -153,7 +146,7 @@ class CommonCOMReader(MeshReader):
 
         # Tell the 3rd party application to open a file...
         Logger.log("d", "Opening file with {}...".format(self._app_friendly_name))
-        options = self.openForeignFile(**options)
+        options = self.openForeignFile(options)
 
         # Append all formats which are not preferred to the end of the list
         fileFormats = self._file_formats_first_choice
@@ -163,13 +156,17 @@ class CommonCOMReader(MeshReader):
 
         # Trying to convert into all formats 1 by 1 and continue with the successful export
         Logger.log("i", "Trying to convert into: %s", fileFormats)
-        temp_scene_node = None
+        scene_node = None
         for file_format in fileFormats:
             Logger.log("d", "Trying to convert <%s> into '%s'", file_path, file_format)
 
             options["tempType"] = file_format
 
-            options["tempFile"] = self.getSaveTempfileName(".{}".format(file_format.upper()))
+            # Creating a unique file in the temporary directory..
+            options["tempFile"] = os.path.join(tempfile.tempdir,
+                                               "{}.{}".format(uuid.uuid4(), file_format.upper()),
+                                               )
+            
             Logger.log("d", "Using temporary file <%s>", options["tempFile"])
 
             # In case there is already a file with this name (very unlikely...)
@@ -179,7 +176,7 @@ class CommonCOMReader(MeshReader):
 
             Logger.log("d", "Saving as: <%s>", options["tempFile"])
             try:
-                self.exportFileAs(**options)
+                self.exportFileAs(options)
             except:
                 Logger.logException("e", "Could not export <%s> into '%s'.", file_path, file_format)
                 continue
@@ -197,22 +194,21 @@ class CommonCOMReader(MeshReader):
                     Logger.log("d", "Found no reader for %s. That's strange...", file_format)
                     continue
                 Logger.log("d", "Using reader: %s", reader.getPluginId())
-                temp_scene_node = reader.read(options["tempFile"])
+                scene_node = reader.read(options["tempFile"])
             except:
                 Logger.logException("e", "Failed to open exported <%s> file in Cura!", file_format)
                 continue
 
             # Remove the temp_file again
             Logger.log("d", "Removing temporary %s file, called <%s>", file_format, options["tempFile"])
-            os.remove(options["tempFile"])
 
             break
 
         # Closing document in the app
-        self.closeForeignFile(**options)
+        self.closeForeignFile(options)
 
         # Closing the app again..
-        self.closeApp(**options)
+        self.closeApp(options)
 
         comtypes.CoUninitialize()
         
@@ -220,22 +216,12 @@ class CommonCOMReader(MeshReader):
         if "app_instance" in options.keys():
             del options["app_instance"]
 
-        scene_node = SceneNode()
-        if temp_scene_node is None:
-            return None
+        # the returned node from STL or 3MF reader can be a node or a list of nodes
+        scene_node_list = scene_node
+        if not isinstance(scene_node, list):
+            scene_node_list = [scene_node]
 
-        temp_scene_node = self.nodePostProcessing(temp_scene_node)
-        mesh = temp_scene_node.getMeshDataTransformed()
+        for node in scene_node_list:
+            self.nodePostProcessing(node)
 
-        # When using 3MF as the format to convert into we get an list of meshes instead of only one mesh directly.
-        # This is a little workaround since reloading of 3MF files doesn't work at the moment.
-        if type(mesh) == list:
-            error_message = Message(i18n_catalog.i18nc("@info:status", "Please keep in mind, that you have to reopen your SolidWorks file manually! Reloading the model won't work!"))
-            error_message.show()
-            mesh = mesh.set(file_name = None)
-        else:
-            mesh = mesh.set(file_name = file_path)
-        scene_node.setMeshData(mesh)
-
-        if scene_node:
-            return scene_node
+        return scene_node

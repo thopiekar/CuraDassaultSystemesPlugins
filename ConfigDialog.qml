@@ -41,7 +41,7 @@ UM.Dialog
             width: parent.width
 
             Label {
-                text: catalog.i18nc("@action:label", "Default quality of the exported STL:")
+                text: catalog.i18nc("@action:label", "Default conversion quality:")
                 width: 150
                 anchors.verticalCenter: parent.verticalCenter
             }
@@ -54,6 +54,7 @@ UM.Dialog
                 id: choiceDropdown
 
                 currentIndex: updateCurrentIndex()
+                width: 250
 
                 function updateCurrentIndex()
                 {
@@ -77,8 +78,8 @@ UM.Dialog
                     Component.onCompleted:
                     {
                         append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Always ask"), code: "always_ask" });
-                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Always use Fine quality"), code: "always_use_fine" });
-                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Always use Coarse quality"), code: "always_use_coarse" });
+                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine quality"), code: "always_use_fine" });
+                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse quality"), code: "always_use_coarse" });
                     }
                 }
             }
