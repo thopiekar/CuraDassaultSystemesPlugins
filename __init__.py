@@ -13,14 +13,6 @@ if Platform.isWindows():
     # The reader plugin itself
     from . import SolidWorksReader
 
-    def is_SolidWorks_available():
-        try:
-            # Could find a better key to detect whether SolidWorks is installed..
-            winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, "SldWorks.Application")
-            return True
-        except:
-            return False
-
 
 def getMetaData():
     return {
@@ -52,7 +44,7 @@ def register(app):
     if Platform.isWindows():
         reader = SolidWorksReader.SolidWorksReader()
         # TODO: Feature: Add at this point an early check, whether readers are available. See: reader.areReadersAvailable()
-        if is_SolidWorks_available():
+        if SolidWorksReader.is_software_available():
             plugin_data["mesh_reader"] = reader
         from .DialogHandler import DialogHandler
         plugin_data["extension"] = DialogHandler()
