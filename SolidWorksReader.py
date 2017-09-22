@@ -8,9 +8,6 @@ import math
 import os
 import winreg
 
-# win32 modules
-import win32file
-
 # Uranium/Cura
 from UM.i18n import i18nCatalog
 from UM.Message import Message
@@ -24,30 +21,51 @@ from UM.PluginRegistry import PluginRegistry
 from .CommonComReader import CommonCOMReader
 from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions
 from .SolidWorksReaderUI import SolidWorksReaderUI
+from .SystemUtils import convertDosPathIntoLongPath
 
-i18n_catalog = i18nCatalog("CuraSolidWorksIntegrationPlugin")
+i18n_catalog = i18nCatalog("CuraDassaultSystemesPlugins")
 
-def has_software_installed(com_service_name):
+def is_sldwks_service(major_version):
+    sldwks_app_name =  "SldWorks.Application.{}".format(major_version)
     try:
         # Could find a better key to detect whether SolidWorks is installed..
-        winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, com_service_name, 0, winreg.KEY_READ)
+        winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, sldwks_app_name, 0, winreg.KEY_READ)
+        
+        # Also check whether the executable can be found..
+        # Why? - SolidWorks 2017 lefts an key after uninstallation, which points to an orphaned path.
+        
         return True
     except:
         return False
 
-def get_software_install_path(version):
-    regpath = "SldWorks.Application.{}\shell\open\command".format(SolidWorkVersions.major_version_name[major_version])
-    sldwks_exe = win32file.GetLongPathName(winreg.QueryValue(winreg.HKEY_CLASSES_ROOT, regpath)).split()[0]
+def get_software_install_path(major_version):
+    regpath = "SldWorks.Application.{}\shell\open\command".format(major_version)
+    sldwks_exe = winreg.QueryValue(winreg.HKEY_CLASSES_ROOT, regpath)
+    sldwks_exe = sldwks_exe.split()[0]
+    sldwks_exe = convertDosPathIntoLongPath(sldwks_exe)
+    
     sldwkd_inst = os.path.split(sldwks_exe)[0]
     return sldwkd_inst
-    
 
+def is_software_install_path(major_version):
+    try:
+        get_software_install_path(major_version)
+        return True
+    except:
+        return False
+
+def is_sldwks_installed(major_version):
+    # Also check whether the executable can be found..
+    # Why? - SolidWorks 2017 lefts an key after uninstallation, which points to an orphaned path.
+    return is_sldwks_service(major_version) and is_software_install_path(major_version)
+    
 def return_available_versions():
     versions = []
     for major_version in SolidWorkVersions.major_version_name.keys(): # If one of "SldWorks.Application.*" exists, we also have a "SldWorks.Application"
-        if has_software_installed("SldWorks.Application.{}".format(major_version)):
-            Logger.log("i", "Found installation of '{}' at <{}>".format(SolidWorkVersions.major_version_name[major_version]),
+        if is_sldwks_installed(major_version):
+            Logger.log("i", "Found installation of '{}' at <{}>".format(SolidWorkVersions.major_version_name[major_version],
                                                                         get_software_install_path(major_version),
+                                                                        )
                        )
             versions.append(major_version)
     return versions
