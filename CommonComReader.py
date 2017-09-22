@@ -164,7 +164,7 @@ class CommonCOMReader(MeshReader):
                    }
 
         # Starting app and Coinit before
-        ComFactory.Coinit()
+        ComFactory.CoInit()
         try:
             self.startApp(options)
         except Exception:
@@ -239,7 +239,7 @@ class CommonCOMReader(MeshReader):
         # Closing the app again..
         self.closeApp(options)
 
-        ComFactory.Coinit()
+        ComFactory.UnCoInit()
 
         # Nuke the instance!
         if "app_instance" in options.keys():
