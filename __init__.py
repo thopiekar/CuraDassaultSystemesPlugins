@@ -13,19 +13,19 @@ if Platform.isWindows():
 
 
 def getMetaData():
-    return {
-        "mesh_reader":
-        [
-            {
-                "extension": "SLDPRT",
-                "description": i18n_catalog.i18nc("@item:inlistbox", "SolidWorks part file")
-            },
-            {
-                "extension": "SLDASM",
-                "description": i18n_catalog.i18nc("@item:inlistbox", "SolidWorks assembly file")
-            }
-        ]
-    }
+    metaData = {"mesh_reader": [],
+                }
+    
+    if SolidWorksReader.is_software_available():
+        metaData["mesh_reader"] += [{
+                                        "extension": "SLDPRT",
+                                        "description": i18n_catalog.i18nc("@item:inlistbox", "SolidWorks part file")
+                                    },
+                                    {
+                                        "extension": "SLDASM",
+                                        "description": i18n_catalog.i18nc("@item:inlistbox", "SolidWorks assembly file")
+                                    },
+                                    ]
 
     # TODO:
     # Needs more documentation on how to convert a CATproduct in CATIA using COM API
@@ -34,7 +34,8 @@ def getMetaData():
     #    "extension": "CATProduct",
     #    "description": i18n_catalog.i18nc("@item:inlistbox", "CATproduct file")
     #}
-
+    
+    return metaData
 
 def register(app):
     # Solid works only runs on Windows.
