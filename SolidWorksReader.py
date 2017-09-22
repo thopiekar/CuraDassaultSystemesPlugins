@@ -8,6 +8,9 @@ import math
 import os
 import winreg
 
+# win32 modules
+import win32file
+
 # Uranium/Cura
 from UM.i18n import i18nCatalog
 from UM.Message import Message
@@ -32,11 +35,20 @@ def has_software_installed(com_service_name):
     except:
         return False
 
+def get_software_install_path(version):
+    regpath = "SldWorks.Application.{}\shell\open\command".format(SolidWorkVersions.major_version_name[major_version])
+    sldwks_exe = win32file.GetLongPathName(winreg.QueryValue(winreg.HKEY_CLASSES_ROOT, regpath)).split()[0]
+    sldwkd_inst = os.path.split(sldwks_exe)[0]
+    return sldwkd_inst
+    
+
 def return_available_versions():
     versions = []
     for major_version in SolidWorkVersions.major_version_name.keys(): # If one of "SldWorks.Application.*" exists, we also have a "SldWorks.Application"
         if has_software_installed("SldWorks.Application.{}".format(major_version)):
-            Logger.log("i", "Found installation of: {}".format(SolidWorkVersions.major_version_name[major_version]))
+            Logger.log("i", "Found installation of '{}' at <{}>".format(SolidWorkVersions.major_version_name[major_version]),
+                                                                        get_software_install_path(major_version),
+                       )
             versions.append(major_version)
     return versions
 
@@ -65,7 +77,7 @@ class SolidWorksReader(CommonCOMReader):
                                    "fine": SolidWorksEnums.swSTLQuality_e.swSTLQuality_Fine}
 
         self.root_component = None
-        
+
     @property
     def _file_formats_first_choice(self):
         _file_formats_first_choice = [] # Ordered list of preferred formats
