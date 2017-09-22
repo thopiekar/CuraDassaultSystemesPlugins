@@ -16,14 +16,45 @@ from UM.Mesh.MeshReader import MeshReader
 from UM.PluginRegistry import PluginRegistry
 from UM.Scene.SceneNode import SceneNode
 
-# PyWin32
-import comtypes
-from comtypes.client import GetClassObject
+# Trying to import one of the COM modules
+try:
+    import win32com.client
+    import win32com.client.gencache
+    import pythoncom
+    import pywintypes
 
+    class ComFactory:
+        def CreateClassObject(app_name):
+            return win32com.client.Dispatch(app_name)
+
+        def Coinit():
+            pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
+
+        def UnCoinit():
+            pythoncom.CoUninitialize()
+
+    Logger.log("i", "ComFactory: Using pywintypes!")
+
+except ImportError:
+    ## ComTypes
+    import comtypes
+    import comtypes.client
+
+    class ComFactory:
+        def CreateClassObject(app_name):
+            return comtypes.client.GetClassObject(app_name).CreateInstance()
+
+        def CoInit():
+            comtypes.CoInitializeEx(comtypes.COINIT_MULTITHREADED)
+
+        def UnCoInit():
+            comtypes.CoUninitialize()
+
+    Logger.log("i", "ComFactory: Using comtypes!")
 
 class CommonCOMReader(MeshReader):
     conversion_lock = threading.Lock()
-    
+
     def __init__(self, app_name, app_friendly_name):
         super().__init__()
         self._app_name = app_name
@@ -78,20 +109,18 @@ class CommonCOMReader(MeshReader):
         # However, this is untested since this plugin was only tested with STL support
         if PluginRegistry.getInstance().isActivePlugin("3MFReader"):
             _reader_for_file_format["3mf"] = PluginRegistry.getInstance().getPluginObject("3MFReader")
-        
+
         if PluginRegistry.getInstance().isActivePlugin("STLReader"):
             _reader_for_file_format["stl"] = PluginRegistry.getInstance().getPluginObject("STLReader")
-        
+
         if not len(_reader_for_file_format):
             Logger.log("d", "Could not find any reader for (probably) supported file formats!")
-        
+
         return _reader_for_file_format
 
     def startApp(self, options):
         Logger.log("d", "Starting %s...", self._app_friendly_name)
-
-        com_class_object = GetClassObject(self._app_name)
-        options["app_instance"] = com_class_object.CreateInstance()
+        options["app_instance"] = ComFactory.CreateClassObject(self._app_name)
 
         return options
 
@@ -124,7 +153,7 @@ class CommonCOMReader(MeshReader):
         try:
             # Let's convert only one file at a time!
             self.conversion_lock.acquire()
-            
+
             return self._read(file_path)
         finally:
             self.conversion_lock.release()
@@ -135,9 +164,9 @@ class CommonCOMReader(MeshReader):
                    }
 
         # Starting app and Coinit before
-        comtypes.CoInitializeEx(comtypes.COINIT_MULTITHREADED)
+        ComFactory.Coinit()
         try:
-            options = self.startApp(options)
+            self.startApp(options)
         except Exception:
             Logger.logException("e", "Failed to start <%s>...", self._app_name)
             error_message = Message(i18n_catalog.i18nc("@info:status", "Error while starting {}!".format(self._app_friendly_name)))
@@ -166,7 +195,7 @@ class CommonCOMReader(MeshReader):
             options["tempFile"] = os.path.join(tempfile.tempdir,
                                                "{}.{}".format(uuid.uuid4(), file_format.upper()),
                                                )
-            
+
             Logger.log("d", "Using temporary file <%s>", options["tempFile"])
 
             # In case there is already a file with this name (very unlikely...)
@@ -210,8 +239,8 @@ class CommonCOMReader(MeshReader):
         # Closing the app again..
         self.closeApp(options)
 
-        comtypes.CoUninitialize()
-        
+        ComFactory.Coinit()
+
         # Nuke the instance!
         if "app_instance" in options.keys():
             del options["app_instance"]

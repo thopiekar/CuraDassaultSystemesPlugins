@@ -119,17 +119,17 @@ class SolidWorksReader(CommonCOMReader):
 
     def startApp(self, options):
         options = super().startApp(options)
-        
+
         # Allow SolidWorks to run in the background and be invisible
         options["app_instance"].UserControl = False
-        
+
         #  ' If the following property is true, then the SolidWorks frame will be visible on a call to ISldWorks::ActivateDoc2; so set it to false
         options["app_instance"].Visible = False
 
         # Keep SolidWorks frame invisible when ISldWorks::ActivateDoc2 is called
         options["app_frame"] = options["app_instance"].Frame()
         options["app_frame"].KeepInvisible = True
-        
+
         # Getting revision after starting
         revision_number = options["app_instance"].RevisionNumber()
         self._revision = [int(x) for x in revision_number.split(".")]
@@ -167,7 +167,7 @@ class SolidWorksReader(CommonCOMReader):
             # Same here. By logic I would assume that we need to undo it, but when processing multiple parts, SolidWorks gets confused again..
             # Or there is another sense..
             #options["app_instance"].Visible = True
-            
+
             # TODO: Check whether this can be useful. I assume it will close all documents from all windows.
             #options["app_instance"].CloseAllDocuments(True) # Ensures that all docs have been closed!
             pass
