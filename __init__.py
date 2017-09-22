@@ -1,11 +1,9 @@
 # Copyright (c) 2016 Thomas Karl Pietrowski
 
-# TODO: Adding support for basic CATIA support
-
 from UM.Platform import Platform
 
 from UM.i18n import i18nCatalog
-i18n_catalog = i18nCatalog("CuraSolidWorksIntegrationPlugin")
+i18n_catalog = i18nCatalog("CuraDassaultSystemesPlugins")
 
 if Platform.isWindows():
     # For installation check

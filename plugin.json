@@ -1,8 +1,8 @@
 {
-    "name": "SolidWorks Integration",
+    "name": "DassaultSystemes Integration",
     "author": "Thomas Karl Pietrowski",
     "version": "0.2.0",
-    "description": "Gives you the possibility to open certain files via SolidWorks itself. These are then converted and loaded into Cura",
+    "description": "Gives you the possibility to open certain files via SolidWorks or CATIA itself. These are then converted and loaded into Cura automatically.",
     "api": 4,
     "i18n-catalog": "cura"
 }
