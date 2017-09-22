@@ -111,26 +111,44 @@ class SolidWorksReader(CommonCOMReader):
 
         return MeshReader.PreReadResult.accepted
 
-    def setAppVisible(self, state, **options):
+    def setAppVisible(self, state, options):
         options["app_instance"].Visible = state
 
-    def getAppVisible(self, state, **options):
+    def getAppVisible(self, state, options):
         return options["app_instance"].Visible
 
-    def startApp(self, visible=False):
-        app_instance = super().startApp(visible = visible)
+    def startApp(self, options):
+        options = super().startApp(options)
+        
+        # Allow SolidWorks to run in the background and be invisible
+        options["app_instance"].UserControl = False
+        
+        #  ' If the following property is true, then the SolidWorks frame will be visible on a call to ISldWorks::ActivateDoc2; so set it to false
+        options["app_instance"].Visible = False
 
+        # Keep SolidWorks frame invisible when ISldWorks::ActivateDoc2 is called
+        options["app_frame"] = options["app_instance"].Frame()
+        options["app_frame"].KeepInvisible = True
+        
         # Getting revision after starting
-        revision_number = app_instance.RevisionNumber()
-        Logger.log("d", "Running: %s", SolidWorkVersions.major_version_name[revision_number])
+        revision_number = options["app_instance"].RevisionNumber()
         self._revision = [int(x) for x in revision_number.split(".")]
-        self._revision_major = self._revision[0]
-        self._revision_minor = self._revision[1]
-        self._revision_patch = self._revision[2]
 
-        return app_instance
+        try:
+            self._revision_major = self._revision[0]
+            self._revision_minor = self._revision[1]
+            self._revision_patch = self._revision[2]
+        except IndexError:
+            pass
 
-    def checkApp(self, **options):
+        try:
+            Logger.log("d", "Running: %s", SolidWorkVersions.major_version_name[self._revision_major])
+        except KeyError:
+            Logger.logException("w", "Unable to get revision number from solid works RevisionNumber.")
+
+        return options
+
+    def checkApp(self, options):
         functions_to_be_checked = ("OpenDoc", "CloseDoc")
         for func in functions_to_be_checked:
             try:
@@ -140,8 +158,17 @@ class SolidWorksReader(CommonCOMReader):
                 return False
         return True
 
-    def closeApp(self, **options):
+    def closeApp(self, options):
+        if "app_frame" in options.keys():
+            # Normally, we want to do that, but this confuses SolidWorks more than needed, it seems.
+            #options["app_frame"].KeepInvisible = False
+            pass
         if "app_instance" in options.keys():
+            # Same here. By logic I would assume that we need to undo it, but when processing multiple parts, SolidWorks gets confused again..
+            # Or there is another sense..
+            #options["app_instance"].Visible = True
+            
+            # TODO: Check whether this can be useful. I assume it will close all documents from all windows.
             #options["app_instance"].CloseAllDocuments(True) # Ensures that all docs have been closed!
             pass
 
@@ -174,7 +201,7 @@ class SolidWorksReader(CommonCOMReader):
             Logger.log("d", "Found %s %s-times in the assembly!" %(key, ComponentsCount[key]))
         """
 
-    def openForeignFile(self, **options):
+    def openForeignFile(self, options):
         if options["foreignFormat"].upper() == self._extension_part:
             filetype = SolidWorksEnums.FileTypes.SWpart
         elif options["foreignFormat"].upper() == self._extension_assembly:
@@ -227,7 +254,7 @@ class SolidWorksReader(CommonCOMReader):
 
         return options
 
-    def exportFileAs(self, **options):
+    def exportFileAs(self, options):
         if options["tempType"] == "stl":
             if options["foreignFormat"].upper() == self._extension_assembly:
                 # Backing up current setting of swSTLComponentsIntoOneFile
@@ -261,7 +288,7 @@ class SolidWorksReader(CommonCOMReader):
                 # Restoring swSTLComponentsIntoOneFile
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, swSTLComponentsIntoOneFileBackup)
 
-    def closeForeignFile(self, **options):
+    def closeForeignFile(self, options):
         #options["app_instance"].CloseDoc(options["foreignFile"])
         options["app_instance"].QuitDoc(options["foreignFile"])
 

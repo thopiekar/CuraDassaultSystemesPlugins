@@ -46,6 +46,6 @@ def register(app):
         # TODO: Feature: Add at this point an early check, whether readers are available. See: reader.areReadersAvailable()
         if SolidWorksReader.is_software_available():
             plugin_data["mesh_reader"] = reader
-        from .ConfigDialog import ConfigDialog
-        plugin_data["extension"] = ConfigDialog()
+        from .DialogHandler import DialogHandler
+        plugin_data["extension"] = DialogHandler()
     return plugin_data
