@@ -30,10 +30,6 @@ def is_sldwks_service(major_version):
     try:
         # Could find a better key to detect whether SolidWorks is installed..
         winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, sldwks_app_name, 0, winreg.KEY_READ)
-        
-        # Also check whether the executable can be found..
-        # Why? - SolidWorks 2017 lefts an key after uninstallation, which points to an orphaned path.
-        
         return True
     except:
         return False
@@ -48,6 +44,8 @@ def get_software_install_path(major_version):
     return sldwkd_inst
 
 def is_software_install_path(major_version):
+    # Also check whether the executable can be found..
+    # Why? - SolidWorks 2017 lefts an key after uninstallation, which points to an orphaned path.
     try:
         get_software_install_path(major_version)
         return True
@@ -55,22 +53,16 @@ def is_software_install_path(major_version):
         return False
 
 def is_sldwks_installed(major_version):
-    # Also check whether the executable can be found..
-    # Why? - SolidWorks 2017 lefts an key after uninstallation, which points to an orphaned path.
     return is_sldwks_service(major_version) and is_software_install_path(major_version)
     
 def return_available_versions():
     versions = []
     for major_version in SolidWorkVersions.major_version_name.keys(): # If one of "SldWorks.Application.*" exists, we also have a "SldWorks.Application"
         if is_sldwks_installed(major_version):
-            Logger.log("i", "Found installation of '{}' at <{}>".format(SolidWorkVersions.major_version_name[major_version],
-                                                                        get_software_install_path(major_version),
-                                                                        )
-                       )
             versions.append(major_version)
     return versions
 
-def is_software_available():
+def is_any_sldwks_installed():
     return bool(return_available_versions())
 
 class SolidWorksReader(CommonCOMReader):

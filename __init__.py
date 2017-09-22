@@ -16,7 +16,7 @@ def getMetaData():
     metaData = {"mesh_reader": [],
                 }
     
-    if SolidWorksReader.is_software_available():
+    if SolidWorksReader.is_any_sldwks_installed():
         metaData["mesh_reader"] += [{
                                         "extension": "SLDPRT",
                                         "description": i18n_catalog.i18nc("@item:inlistbox", "SolidWorks part file")
@@ -43,7 +43,7 @@ def register(app):
     if Platform.isWindows():
         reader = SolidWorksReader.SolidWorksReader()
         # TODO: Feature: Add at this point an early check, whether readers are available. See: reader.areReadersAvailable()
-        if SolidWorksReader.is_software_available():
+        if SolidWorksReader.is_any_sldwks_installed():
             plugin_data["mesh_reader"] = reader
         from .DialogHandler import DialogHandler
         plugin_data["extension"] = DialogHandler()
