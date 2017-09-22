@@ -1,5 +1,10 @@
 # Copyright (c) 2017 Thomas Karl Pietrowski
 
+class SolidWorkVersions:
+    major_version_name = { 24 : "SolidWorks 2016",
+                           25 : "SolidWorks 2017",
+                           26 : "SolidWorks 2018",
+                          }
 
 class SolidWorksEnums:
     class swRebuildOnActivation_e:

@@ -6,6 +6,7 @@
 # Build-ins
 import math
 import os
+import winreg
 
 # Uranium/Cura
 from UM.i18n import i18nCatalog
@@ -18,11 +19,29 @@ from UM.PluginRegistry import PluginRegistry
 
 # Our plugin
 from .CommonComReader import CommonCOMReader
-from .SolidWorksConstants import SolidWorksEnums
+from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions
 from .SolidWorksReaderUI import SolidWorksReaderUI
 
 i18n_catalog = i18nCatalog("CuraSolidWorksIntegrationPlugin")
 
+def has_software_installed(com_service_name):
+    try:
+        # Could find a better key to detect whether SolidWorks is installed..
+        winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, com_service_name, 0, winreg.KEY_READ)
+        return True
+    except:
+        return False
+
+def return_available_versions():
+    versions = []
+    for major_version in SolidWorkVersions.major_version_name.keys(): # If one of "SldWorks.Application.*" exists, we also have a "SldWorks.Application"
+        if has_software_installed("SldWorks.Application.{}".format(major_version)):
+            Logger.log("i", "Found installation of: {}".format(SolidWorkVersions.major_version_name[major_version]))
+            versions.append(major_version)
+    return versions
+
+def is_software_available():
+    return bool(return_available_versions())
 
 class SolidWorksReader(CommonCOMReader):
     def __init__(self):
@@ -101,11 +120,19 @@ class SolidWorksReader(CommonCOMReader):
 
         # Getting revision after starting
         revision_number = options["app_instance"].RevisionNumber()
-        Logger.log("d", "SolidWorks RevisionNumber: %s", revision_number)
         self._revision = [int(x) for x in revision_number.split(".")]
-        self._revision_major = self._revision[0]
-        self._revision_minor = self._revision[1]
-        self._revision_patch = self._revision[2]
+
+        try:
+            self._revision_major = self._revision[0]
+            self._revision_minor = self._revision[1]
+            self._revision_patch = self._revision[2]
+        except IndexError:
+            pass
+
+        try:
+            Logger.log("d", "Running: %s", SolidWorkVersions.major_version_name[self._revision_major])
+        except KeyError:
+            Logger.logException("w", "Unable to get revision number from solid works RevisionNumber.")
 
         return options
 
