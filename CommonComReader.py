@@ -55,10 +55,15 @@ except ImportError:
 class CommonCOMReader(MeshReader):
     conversion_lock = threading.Lock()
 
-    def __init__(self, app_name, app_friendly_name):
+    def __init__(self,
+                 app_name,
+                 app_friendly_name):
         super().__init__()
-        self._app_name = app_name
-        self._app_friendly_name = app_friendly_name
+        
+        # Setting default aka fallback
+        self._default_app_name = app_name
+        self._default_app_friendly_name = app_friendly_name
+        
         #self._file_formats_first_choice = []
 
         # Start/stop behaviour
@@ -102,6 +107,10 @@ class CommonCOMReader(MeshReader):
     #        Logger.log("d", "Could not find any reader for (probably) supported file formats!")
 
     @property
+    def _app_names(self):
+        return [self._default_app_name, ]
+
+    @property
     def _reader_for_file_format(self):
         _reader_for_file_format = {}
 
@@ -119,8 +128,8 @@ class CommonCOMReader(MeshReader):
         return _reader_for_file_format
 
     def startApp(self, options):
-        Logger.log("d", "Starting %s...", self._app_friendly_name)
-        options["app_instance"] = ComFactory.CreateClassObject(self._app_name)
+        Logger.log("d", "Calling %s...", options["app_name"])
+        options["app_instance"] = ComFactory.CreateClassObject(options["app_name"])
 
         return options
 
@@ -150,105 +159,104 @@ class CommonCOMReader(MeshReader):
         return node
 
     def read(self, file_path):
-        try:
-            # Let's convert only one file at a time!
-            self.conversion_lock.acquire()
-
-            return self._read(file_path)
-        finally:
-            self.conversion_lock.release()
-
-    def _read(self, file_path):
+        # Let's convert only one file at a time!
+        self.conversion_lock.acquire()
+        
         options = {"foreignFile": file_path,
                    "foreignFormat": os.path.splitext(file_path)[1],
                    }
-
-        # Starting app and Coinit before
-        ComFactory.CoInit()
-        try:
-            self.startApp(options)
-        except Exception:
-            Logger.logException("e", "Failed to start <%s>...", self._app_name)
-            error_message = Message(i18n_catalog.i18nc("@info:status", "Error while starting {}!".format(self._app_friendly_name)))
-            error_message.show()
-            return None
-
-        # Tell the 3rd party application to open a file...
-        Logger.log("d", "Opening file with {}...".format(self._app_friendly_name))
-        options = self.openForeignFile(options)
 
         # Append all formats which are not preferred to the end of the list
         fileFormats = self._file_formats_first_choice
         for file_format in self._reader_for_file_format.keys():
             if file_format not in fileFormats:
                 fileFormats.append(file_format)
-
-        # Trying to convert into all formats 1 by 1 and continue with the successful export
-        Logger.log("i", "Trying to convert into: %s", fileFormats)
+        
         scene_node = None
-        for file_format in fileFormats:
-            Logger.log("d", "Trying to convert <%s> into '%s'", file_path, file_format)
-
-            options["tempType"] = file_format
-
-            # Creating a unique file in the temporary directory..
-            options["tempFile"] = os.path.join(tempfile.tempdir,
-                                               "{}.{}".format(uuid.uuid4(), file_format.upper()),
-                                               )
-
-            Logger.log("d", "Using temporary file <%s>", options["tempFile"])
-
-            # In case there is already a file with this name (very unlikely...)
-            if os.path.isfile(options["tempFile"]):
-                Logger.log("w", "Removing already available file, called: %s", options["tempFile"])
-                os.remove(options["tempFile"])
-
-            Logger.log("d", "Saving as: <%s>", options["tempFile"])
+        for app_name in self._app_names:
+            options["app_name"] = app_name
+            
+            # Starting app and Coinit before
+            ComFactory.CoInit()
             try:
-                self.exportFileAs(options)
-            except:
-                Logger.logException("e", "Could not export <%s> into '%s'.", file_path, file_format)
+                # Start the app by its name...
+                self.startApp(options)
+                
+                # Tell the loaded application to open a file...
+                Logger.log("d", "... and opening file.")
+                options = self.openForeignFile(options)
+                   
+                # Trying to convert into all formats 1 by 1 and continue with the successful export
+                Logger.log("i", "Trying to convert into one of: %s", fileFormats)
+                for file_format in fileFormats:
+                    Logger.log("d", "Trying to convert <%s>...", os.path.split(file_path)[1])
+                    options["tempType"] = file_format
+        
+                    # Creating a new unique filename in the temporary directory..
+                    options["tempFile"] = os.path.join(tempfile.tempdir,
+                                                       "{}.{}".format(uuid.uuid4(), file_format.upper()),
+                                                       )
+                    Logger.log("d", "... into '%s' format: <%s>", file_format, options["tempFile"])
+                    try:
+                        self.exportFileAs(options)
+                    except:
+                        Logger.logException("e", "Could not export <%s> into '%s'.", file_path, file_format)
+                        continue
+        
+                    if os.path.isfile(options["tempFile"]):
+                        Logger.log("d", "Found temporary file!")
+                    else:
+                        Logger.log("c", "Temporary file not found after export!")
+                        continue
+        
+                    # Opening the resulting file in Cura
+                    try:
+                        reader = Application.getInstance().getMeshFileHandler().getReaderForFile(options["tempFile"])
+                        if not reader:
+                            Logger.log("d", "Found no reader for %s. That's strange...", file_format)
+                            continue
+                        Logger.log("d", "Using reader: %s", reader.getPluginId())
+                        scene_node = reader.read(options["tempFile"])
+                        break
+                    except:
+                        Logger.logException("e", "Failed to open exported <%s> file in Cura!", file_format)
+                        continue
+                    finally:
+                        # Whatever happens, remove the temp_file again..
+                        Logger.log("d", "Removing temporary %s file, called <%s>", file_format, options["tempFile"])
+                if scene_node:
+                    # We don't need to test the next application. The result is already there...
+                    break
+                
+            except Exception:
+                Logger.logException("e", "Failed to export using '%s'...", app_name)
+                # Let's try with the next application...
                 continue
+            finally:
+                # Closing document in the app
+                self.closeForeignFile(options)
+                # Closing the app again..
+                self.closeApp(options)
+                # Nuke the instance!
+                if "app_instance" in options.keys():
+                    del options["app_instance"]
+                # .. and finally CoInit
+                ComFactory.UnCoInit()
 
-            if os.path.isfile(options["tempFile"]):
-                Logger.log("d", "Saved as: <%s>", options["tempFile"])
-            else:
-                Logger.log("d", "Temporary file not found after export!")
-                continue
+        self.conversion_lock.release()
 
-            # Opening the resulting file in Cura
-            try:
-                reader = Application.getInstance().getMeshFileHandler().getReaderForFile(options["tempFile"])
-                if not reader:
-                    Logger.log("d", "Found no reader for %s. That's strange...", file_format)
-                    continue
-                Logger.log("d", "Using reader: %s", reader.getPluginId())
-                scene_node = reader.read(options["tempFile"])
-            except:
-                Logger.logException("e", "Failed to open exported <%s> file in Cura!", file_format)
-                continue
-
-            # Remove the temp_file again
-            Logger.log("d", "Removing temporary %s file, called <%s>", file_format, options["tempFile"])
-
-            break
-
-        # Closing document in the app
-        self.closeForeignFile(options)
-
-        # Closing the app again..
-        self.closeApp(options)
-
-        ComFactory.UnCoInit()
-
-        # Nuke the instance!
-        if "app_instance" in options.keys():
-            del options["app_instance"]
-
-        # the returned node from STL or 3MF reader can be a node or a list of nodes
-        scene_node_list = scene_node
-        if not isinstance(scene_node, list):
+        """
+        if not scene_node:
+            error_message = Message(i18n_catalog.i18nc("@info:status", "Could not open {}!".format(file_path)))
+            error_message.show()
+            return scene_node
+        """
+        if not scene_node:
+            return scene_node
+        elif not isinstance(scene_node, list):
             scene_node_list = [scene_node]
+        else:
+            scene_node_list = scene_node
 
         for node in scene_node_list:
             self.nodePostProcessing(node)

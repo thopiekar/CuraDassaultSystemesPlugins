@@ -88,6 +88,11 @@ class SolidWorksReader(CommonCOMReader):
 
         self.root_component = None
 
+
+    @property
+    def _app_names(self):
+        return ["SldWorks.Application.{}".format(major_version) for major_version in return_available_versions()] + super()._app_names
+    
     @property
     def _file_formats_first_choice(self):
         _file_formats_first_choice = [] # Ordered list of preferred formats
