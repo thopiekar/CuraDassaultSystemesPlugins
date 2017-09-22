@@ -1,7 +1,7 @@
 {
     "name": "SolidWorks Integration",
     "author": "Thomas Karl Pietrowski",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "description": "Gives you the possibility to open certain files via SolidWorks itself. These are then converted and loaded into Cura",
     "api": 4,
     "i18n-catalog": "cura"
