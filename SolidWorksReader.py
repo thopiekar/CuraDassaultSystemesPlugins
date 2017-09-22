@@ -137,11 +137,11 @@ class SolidWorksReader(CommonCOMReader):
         options["app_instance"].Visible = False
 
         # Keep SolidWorks frame invisible when ISldWorks::ActivateDoc2 is called
-        options["app_frame"] = options["app_instance"].Frame()
+        options["app_frame"] = options["app_instance"].Frame
         options["app_frame"].KeepInvisible = True
 
         # Getting revision after starting
-        revision_number = options["app_instance"].RevisionNumber()
+        revision_number = options["app_instance"].RevisionNumber
         self._revision = [int(x) for x in revision_number.split(".")]
 
         try:
