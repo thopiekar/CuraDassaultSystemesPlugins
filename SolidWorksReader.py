@@ -299,8 +299,9 @@ class SolidWorksReader(CommonCOMReader):
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, swSTLComponentsIntoOneFileBackup)
 
     def closeForeignFile(self, options):
-        #options["app_instance"].CloseDoc(options["foreignFile"])
-        options["app_instance"].QuitDoc(options["foreignFile"])
+        if "app_instance" in options.keys():
+            #options["app_instance"].CloseDoc(options["foreignFile"])
+            options["app_instance"].QuitDoc(options["foreignFile"])
 
     ## TODO: A functionality like this needs to come back as soon as we have something like a dependency resolver for plugins.
     #def areReadersAvailable(self):
