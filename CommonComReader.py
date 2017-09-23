@@ -127,6 +127,11 @@ class CommonCOMReader(MeshReader):
 
         return _reader_for_file_format
 
+    @property
+    def _file_formats_first_choice(self):
+        # By default no preference
+        return []
+    
     def startApp(self, options):
         Logger.log("d", "Calling %s...", options["app_name"])
         options["app_instance"] = ComFactory.CreateClassObject(options["app_name"])
