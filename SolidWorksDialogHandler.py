@@ -14,7 +14,7 @@ import os
 i18n_catalog = i18nCatalog("cura")
 
 
-class DialogHandler(QObject, Extension):
+class SolidWorksDialogHandler(QObject, Extension):
     def __init__(self, parent = None):
         super().__init__(parent)
         self._config_dialog = None
@@ -24,12 +24,12 @@ class DialogHandler(QObject, Extension):
 
     def _openConfigDialog(self):
         if not self._config_dialog:
-            self._config_dialog = self._createDialog("ConfigDialog.qml")
+            self._config_dialog = self._createDialog("SolidWorksConfigDialog.qml")
         self._config_dialog.show()
 
     def _openTutorialDialog(self):
         if not self._tutorial_dialog:
-            self._tutorial_dialog = self._createDialog("MacroTutorialDialog.qml")
+            self._tutorial_dialog = self._createDialog("SolidWorksMacroTutorialDialog.qml")
         self._tutorial_dialog.show()
 
     def _createDialog(self, dialog_qml):
