@@ -163,7 +163,7 @@ class SolidWorksReader(CommonCOMReader):
             pass
 
         try:
-            Logger.log("d", "Started %s", SolidWorkVersions.major_version_name[self._revision_major])
+            Logger.log("d", "Started SolidWorks revision: %s", SolidWorkVersions.major_version_name[self._revision_major])
         except KeyError:
             Logger.logException("w", "Unable to get revision number from solid works RevisionNumber.")
 
