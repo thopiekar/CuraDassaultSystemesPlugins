@@ -220,6 +220,14 @@ class SolidWorksReader(CommonCOMReader):
             Logger.log("d", "Found %s %s-times in the assembly!" %(key, ComponentsCount[key]))
         """
 
+    def getOpenDocuments(self, options):
+        open_files = []
+        open_file = options["app_instance"].GetFirstDocument
+        while open_file:
+            open_files.append(open_file)
+            open_file = open_file.GetNext
+        return open_files
+
     def getOpenDocumentFilepathDict(self, options):
         """
         Returns a dictionary of filepaths and document objects
@@ -227,15 +235,12 @@ class SolidWorksReader(CommonCOMReader):
         - Apparently we can't get .GetDocuments working
         """
         
+        open_files = self.getOpenDocuments(options)
         open_file_paths = {}
-        open_file = options["app_instance"].GetFirstDocument
-        while open_file:
+        for open_file in open_files:
             open_file_paths[os.path.normpath(open_file.GetPathName)] = open_file
             open_file = open_file.GetNext
         return open_file_paths
-    
-    def getOpenDocuments(self, options):
-        return self.getOpenDocumentFilepathDict(options).keys()
 
     def getDocumentTitleByFilepath(self, options, filepath):
         open_files = self.getOpenDocumentFilepathDict(options)
