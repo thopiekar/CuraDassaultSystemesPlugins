@@ -84,6 +84,12 @@ UM.Dialog
                 }
             }
         }
+        Row {
+            CheckBox {
+                text: qsTr("Autorotate model to normed orientation")
+                checked: true
+            }
+        }
     }
 
     rightButtons: [
