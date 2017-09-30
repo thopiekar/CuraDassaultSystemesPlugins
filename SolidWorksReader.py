@@ -295,8 +295,8 @@ class SolidWorksReader(CommonCOMReader):
         options["sw_model_title"] = self.getDocumentTitleByFilepath(options, options["foreignFile"])
         
         ## Neither ActivateDoc3 nor ActivateDoc2 are working - give it up, man!
-        error = ctypes.c_int()
-        options["app_instance"].ActivateDoc3(options["sw_model_title"], True, SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc, ctypes.byref(error))
+        error = ComConnector.IntByRef
+        options["app_instance"].ActivateDoc3(options["sw_model_title"], True, SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc, error)
 
         # Might be useful in the future, but no need for this ATM
         #self.configuration = options["sw_model"].getActiveConfiguration

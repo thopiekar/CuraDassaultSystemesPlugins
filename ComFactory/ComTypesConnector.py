@@ -3,6 +3,7 @@
 # Comtypes modules
 import comtypes
 import comtypes.client
+import ctypes
 
 class ComConnector:
     def CreateClassObject(app_name):
@@ -16,3 +17,8 @@ class ComConnector:
     
     def GetComObject(toBeObjected):
         return toBeObjected._comobj
+    
+    @property
+    def IntByRef(self):
+        int_value = ctypes.c_int()
+        return ctypes.byref(int_value)
