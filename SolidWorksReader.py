@@ -22,6 +22,8 @@ from .CommonComReader import CommonCOMReader
 from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions
 from .SolidWorksReaderUI import SolidWorksReaderUI
 from .SystemUtils import convertDosPathIntoLongPath
+from .ComFactory import ComConnector
+
 
 i18n_catalog = i18nCatalog("CuraDassaultSystemesPlugins")
 
@@ -241,7 +243,8 @@ class SolidWorksReader(CommonCOMReader):
         ## TODO: Double check, whether file was really opened read-only..
         documentSpecification.ReadOnly = True
 
-        options["sw_model"] = options["app_instance"].OpenDoc7(documentSpecification._comobj)
+        documentSpecificationObject = ComConnector.GetComObject(documentSpecification._comobj)
+        options["sw_model"] = options["app_instance"].OpenDoc7(documentSpecificationObject)
 
         if documentSpecification.Warning:
             Logger.log("w", "Warnings happened while opening your SolidWorks file!")

@@ -17,40 +17,7 @@ from UM.PluginRegistry import PluginRegistry
 from UM.Scene.SceneNode import SceneNode
 
 # Trying to import one of the COM modules
-try:
-    import win32com.client
-    import win32com.client.gencache
-    import pythoncom
-    import pywintypes
-
-    class ComFactory:
-        def CreateClassObject(app_name):
-            return win32com.client.Dispatch(app_name)
-
-        def CoInit():
-            pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
-
-        def UnCoinit():
-            pythoncom.CoUninitialize()
-
-    Logger.log("i", "ComFactory: Using pywintypes!")
-
-except ImportError:
-    ## ComTypes
-    import comtypes
-    import comtypes.client
-
-    class ComFactory:
-        def CreateClassObject(app_name):
-            return comtypes.client.GetClassObject(app_name).CreateInstance()
-
-        def CoInit():
-            comtypes.CoInitializeEx(comtypes.COINIT_MULTITHREADED)
-
-        def UnCoInit():
-            comtypes.CoUninitialize()
-
-    Logger.log("i", "ComFactory: Using comtypes!")
+from .ComFactory import ComConnector
 
 class CommonCOMReader(MeshReader):
     conversion_lock = threading.Lock()
@@ -129,7 +96,7 @@ class CommonCOMReader(MeshReader):
 
     def startApp(self, options):
         Logger.log("d", "Calling %s...", options["app_name"])
-        options["app_instance"] = ComFactory.CreateClassObject(options["app_name"])
+        options["app_instance"] = ComConnector.CreateClassObject(options["app_name"])
 
         return options
 
@@ -177,7 +144,7 @@ class CommonCOMReader(MeshReader):
             options["app_name"] = app_name
             
             # Starting app and Coinit before
-            ComFactory.CoInit()
+            ComConnector.CoInit()
             try:
                 # Start the app by its name...
                 self.startApp(options)
@@ -241,7 +208,7 @@ class CommonCOMReader(MeshReader):
                 if "app_instance" in options.keys():
                     del options["app_instance"]
                 # .. and finally CoInit
-                ComFactory.UnCoInit()
+                ComConnector.UnCoInit()
 
         self.conversion_lock.release()
 
