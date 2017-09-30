@@ -153,6 +153,8 @@ class SolidWorksReader(CommonCOMReader):
         revision_number = options["app_instance"].RevisionNumber
         self._revision = [int(x) for x in revision_number.split(".")]
 
+        # WORKAROUND: API INCONSISTENCY IN 2018
+        # TODO: Contact DessaultSystemes about that. Hope this is already gone after the beta.
         try:
             self._revision_major = self._revision[0]
             self._revision_minor = self._revision[1]
@@ -303,7 +305,11 @@ class SolidWorksReader(CommonCOMReader):
         
         ## Neither ActivateDoc3 nor ActivateDoc2 are working - give it up, man!
         error = ctypes.c_int()
-        options["app_instance"].ActivateDoc3(options["sw_model_title"], True, SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc, ctypes.byref(error))
+        options["app_instance"].ActivateDoc3(options["sw_model_title"],
+                                             True,
+                                             SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
+                                             ctypes.byref(error)
+                                             )
 
         # Might be useful in the future, but no need for this ATM
         #self.configuration = options["sw_model"].getActiveConfiguration
@@ -354,7 +360,11 @@ class SolidWorksReader(CommonCOMReader):
             options["app_instance"].CloseDoc(options["sw_model_title"])
         if options["sw_previous_active_file"]:
             error = ctypes.c_int()
-            options["app_instance"].ActivateDoc3(options["sw_previous_active_file"].GetTitle, True, SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc, ctypes.byref(error))
+            options["app_instance"].ActivateDoc3(options["sw_previous_active_file"].GetTitle,
+                                                 True,
+                                                 SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
+                                                 ctypes.byref(error)
+                                                 )
 
     ## TODO: A functionality like this needs to come back as soon as we have something like a dependency resolver for plugins.
     #def areReadersAvailable(self):
