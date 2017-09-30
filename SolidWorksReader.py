@@ -12,6 +12,7 @@ import winreg
 from UM.i18n import i18nCatalog
 from UM.Message import Message
 from UM.Logger import Logger
+from UM.Math.Matrix import Matrix
 from UM.Math.Vector import Vector
 from UM.Math.Quaternion import Quaternion
 from UM.Mesh.MeshReader import MeshReader
@@ -321,6 +322,11 @@ class SolidWorksReader(CommonCOMReader):
             for node in nodes:
                 rotation = Quaternion.fromAngleAxis(math.radians(90), Vector.Unit_X)
                 node.rotate(rotation)
+                
+                # Copy the transformed mesh and reset the transformation
+                # TODO: The following functions are returning bad data or something else.. I don't know.. Models are black afterwards.
+                #node.setMeshData(node.getMeshDataTransformed())
+                #node.setTransformation(Matrix())
         return nodes
 
     ## Decide if we need to use ascii or binary in order to read file
