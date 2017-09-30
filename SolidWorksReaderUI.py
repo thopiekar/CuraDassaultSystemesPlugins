@@ -74,7 +74,7 @@ class SolidWorksReaderUI(QObject):
 
     def _createConfigUI(self):
         if self._ui_view is None:
-            path = QUrl.fromLocalFile(os.path.join(PluginRegistry.getInstance().getPluginPath("CuraSolidWorksPlugin"), "ExportSTLUI.qml"))
+            path = QUrl.fromLocalFile(os.path.join(PluginRegistry.getInstance().getPluginPath("CuraSolidWorksPlugin"), "SolidWorksExportSTLUI.qml"))
             component = QQmlComponent(Application.getInstance()._engine, path)
             self._ui_context = QQmlContext(Application.getInstance()._engine.rootContext())
             self._ui_context.setContextProperty("manager", self)
