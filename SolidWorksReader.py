@@ -226,6 +226,7 @@ class SolidWorksReader(CommonCOMReader):
         while open_file:
             open_files.append(open_file)
             open_file = open_file.GetNext
+        Logger.log("i", "Found {} open files..".format(len(open_files)))
         return open_files
 
     def getOpenDocumentFilepathDict(self, options):
@@ -246,6 +247,9 @@ class SolidWorksReader(CommonCOMReader):
         open_files = self.getOpenDocumentFilepathDict(options)
         for open_file_path in open_files.keys():
             if os.path.normpath(filepath) == open_file_path:
+                Logger.log("i", "Found title '{}' for file <{}>".format(open_files[open_file_path].GetTitle,
+                                                                        open_file_path)
+                           )
                 return open_files[open_file_path].GetTitle
         return None
 
