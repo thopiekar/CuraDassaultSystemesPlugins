@@ -27,7 +27,7 @@ try:
         def CreateClassObject(app_name):
             return win32com.client.Dispatch(app_name)
 
-        def Coinit():
+        def CoInit():
             pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
 
         def UnCoinit():
