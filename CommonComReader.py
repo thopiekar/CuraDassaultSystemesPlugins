@@ -191,6 +191,7 @@ class CommonCOMReader(MeshReader):
                     finally:
                         # Whatever happens, remove the temp_file again..
                         Logger.log("d", "Removing temporary %s file, called <%s>", file_format, options["tempFile"])
+                        os.remove(options["tempFile"])
                 if scene_node:
                     # We don't need to test the next application. The result is already there...
                     break
