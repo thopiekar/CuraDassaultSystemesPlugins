@@ -188,9 +188,6 @@ class SolidWorksReader(CommonCOMReader):
             # Same here. By logic I would assume that we need to undo it, but when processing multiple parts, SolidWorks gets confused again..
             # Or there is another sense..
             #options["app_instance"].Visible = True
-
-            # TODO: Check whether this can be useful. I assume it will close all documents from all windows.
-            #options["app_instance"].CloseAllDocuments(True) # Ensures that all docs have been closed!
             pass
 
     def walkComponentsInAssembly(self, root = None):
