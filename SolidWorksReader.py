@@ -88,6 +88,11 @@ class SolidWorksReader(CommonCOMReader):
 
         self.root_component = None
 
+
+    @property
+    def _app_names(self):
+        return ["SldWorks.Application.{}".format(major_version) for major_version in return_available_versions()] + super()._app_names
+    
     @property
     def _file_formats_first_choice(self):
         _file_formats_first_choice = [] # Ordered list of preferred formats
@@ -137,11 +142,11 @@ class SolidWorksReader(CommonCOMReader):
         options["app_instance"].Visible = False
 
         # Keep SolidWorks frame invisible when ISldWorks::ActivateDoc2 is called
-        options["app_frame"] = options["app_instance"].Frame()
+        options["app_frame"] = options["app_instance"].Frame
         options["app_frame"].KeepInvisible = True
 
         # Getting revision after starting
-        revision_number = options["app_instance"].RevisionNumber()
+        revision_number = options["app_instance"].RevisionNumber
         self._revision = [int(x) for x in revision_number.split(".")]
 
         try:
@@ -152,7 +157,7 @@ class SolidWorksReader(CommonCOMReader):
             pass
 
         try:
-            Logger.log("d", "Running: %s", SolidWorkVersions.major_version_name[self._revision_major])
+            Logger.log("d", "Started %s", SolidWorkVersions.major_version_name[self._revision_major])
         except KeyError:
             Logger.logException("w", "Unable to get revision number from solid works RevisionNumber.")
 
@@ -299,8 +304,9 @@ class SolidWorksReader(CommonCOMReader):
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, swSTLComponentsIntoOneFileBackup)
 
     def closeForeignFile(self, options):
-        #options["app_instance"].CloseDoc(options["foreignFile"])
-        options["app_instance"].QuitDoc(options["foreignFile"])
+        if "app_instance" in options.keys():
+            #options["app_instance"].CloseDoc(options["foreignFile"])
+            options["app_instance"].QuitDoc(options["foreignFile"])
 
     ## TODO: A functionality like this needs to come back as soon as we have something like a dependency resolver for plugins.
     #def areReadersAvailable(self):
