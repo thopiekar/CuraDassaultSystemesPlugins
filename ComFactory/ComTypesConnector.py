@@ -1,8 +1,4 @@
-'''
-Created on 30 sep. 2017
-
-@author: t.pietrowski
-'''
+# Copyright (c) 2017 Thomas Karl Pietrowski
 
 # Comtypes modules
 import comtypes
@@ -18,5 +14,5 @@ class ComConnector:
     def UnCoInit():
         comtypes.CoUninitialize()
     
-    def GetComObject(self, toBeObjected):
+    def GetComObject(toBeObjected):
         return toBeObjected._comobj

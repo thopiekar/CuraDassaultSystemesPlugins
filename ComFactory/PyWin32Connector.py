@@ -1,8 +1,4 @@
-'''
-Created on 30 sep. 2017
-
-@author: t.pietrowski
-'''
+# Copyright (c) 2017 Thomas Karl Pietrowski
 
 # PyWin32 modules
 import win32com.client
@@ -20,5 +16,5 @@ class ComConnector:
     def UnCoinit():
         pythoncom.CoUninitialize()
 
-    def GetComObject(self, toBeObjected):
+    def GetComObject(toBeObjected):
         return toBeObjected

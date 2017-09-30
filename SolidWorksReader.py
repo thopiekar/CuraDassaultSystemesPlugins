@@ -243,7 +243,7 @@ class SolidWorksReader(CommonCOMReader):
         ## TODO: Double check, whether file was really opened read-only..
         documentSpecification.ReadOnly = True
 
-        documentSpecificationObject = ComConnector.GetComObject(documentSpecification._comobj)
+        documentSpecificationObject = ComConnector.GetComObject(documentSpecification)
         options["sw_model"] = options["app_instance"].OpenDoc7(documentSpecificationObject)
 
         if documentSpecification.Warning:
