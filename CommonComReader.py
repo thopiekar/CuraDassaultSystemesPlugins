@@ -232,7 +232,6 @@ class CommonCOMReader(MeshReader):
             # Likely the result of an 3MF conversion
             scene_node_list = scene_node
 
-        for node in scene_node_list:
-            self.nodePostProcessing(node)
+        self.nodePostProcessing(scene_node_list)
 
         return scene_node
