@@ -247,9 +247,7 @@ class SolidWorksReader(CommonCOMReader):
     def openForeignFile(self, options):
         open_file_paths = self.getOpenDocuments(options)
 
-        Logger.log("d", "CURRENTLY ACTIVE DOCUMENT: {}".format(options['app_instance'].ActiveDoc))
         options["sw_previous_active_file"] = options['app_instance'].ActiveDoc
-
         # If the file has not been loaded open it!
         if not os.path.normpath(options["foreignFile"]) in open_file_paths:
             Logger.log("d", "Opening the foreign file!")
