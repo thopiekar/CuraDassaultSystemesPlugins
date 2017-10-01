@@ -290,6 +290,13 @@ class SolidWorksReader(CommonCOMReader):
             documentSpecificationObject = ComConnector.GetComObject(documentSpecification)
             options["sw_model"] = options["app_instance"].OpenDoc7(documentSpecificationObject)
 
+            if options["foreignFormat"].upper() == self._extension_drawing:
+                selectionManager =  options["sw_model"].SelectionManager
+                count = selectionManager.GetSelectedObjectCount2(-1)
+                Logger.log("d", "Found {} objects..".format(count))
+                selectionManager.GetSelectedObject6(0, -1)
+
+
             if documentSpecification.Warning:
                 Logger.log("w", "Warnings happened while opening your SolidWorks file!")
             if documentSpecification.Error:
