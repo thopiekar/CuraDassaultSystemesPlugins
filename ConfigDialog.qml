@@ -14,8 +14,8 @@ UM.Dialog
     width: 300 * Screen.devicePixelRatio
     minimumWidth: 300 * Screen.devicePixelRatio
 
-    height: 100 * Screen.devicePixelRatio
-    minimumHeight: 100 * Screen.devicePixelRatio
+    height: 120 * Screen.devicePixelRatio
+    minimumHeight: 120 * Screen.devicePixelRatio
 
     title: catalog.i18nc("@title:window", "Cura SolidWorks Plugin Configuration")
 
