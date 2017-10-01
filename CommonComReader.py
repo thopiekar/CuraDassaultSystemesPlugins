@@ -191,6 +191,8 @@ class CommonCOMReader(MeshReader):
                     finally:
                         # Whatever happens, remove the temp_file again..
                         Logger.log("d", "Removing temporary %s file, called <%s>", file_format, options["tempFile"])
+                        os.remove(options["tempFile"])
+                        # Pass to the node the correct aka original filename
                 if scene_node:
                     # We don't need to test the next application. The result is already there...
                     break
@@ -221,11 +223,16 @@ class CommonCOMReader(MeshReader):
         if not scene_node:
             return scene_node
         elif not isinstance(scene_node, list):
+            # This part is needed for reloading converted files into STL - Cura will try otherwise to reopen the temp file, which is already removed.
+            mesh_data = scene_node.getMeshData()
+            Logger.log("d", "File path in mesh was: %s", mesh_data.getFileName())
+            mesh_data = mesh_data.set(file_name = file_path)
+            scene_node.setMeshData(mesh_data)
             scene_node_list = [scene_node]
         else:
+            # Likely the result of an 3MF conversion
             scene_node_list = scene_node
 
-        for node in scene_node_list:
-            self.nodePostProcessing(node)
+        self.nodePostProcessing(scene_node_list)
 
         return scene_node

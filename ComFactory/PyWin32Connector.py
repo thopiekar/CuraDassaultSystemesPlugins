@@ -13,8 +13,12 @@ class ComConnector:
     def CoInit():
         pythoncom.CoInitializeEx(pythoncom.COINIT_MULTITHREADED)
 
-    def UnCoinit():
+    def UnCoInit():
         pythoncom.CoUninitialize()
 
     def GetComObject(toBeObjected):
         return toBeObjected
+    
+    @property
+    def IntByRef(self):
+        return win32com.client.VARIANT(pythoncom.VT_BYREF | pythoncom.VT_I1, 0)

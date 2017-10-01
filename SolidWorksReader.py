@@ -7,11 +7,13 @@
 import math
 import os
 import winreg
+import ctypes
 
 # Uranium/Cura
 from UM.i18n import i18nCatalog
 from UM.Message import Message
 from UM.Logger import Logger
+from UM.Math.Matrix import Matrix
 from UM.Math.Vector import Vector
 from UM.Math.Quaternion import Quaternion
 from UM.Mesh.MeshReader import MeshReader
@@ -151,6 +153,8 @@ class SolidWorksReader(CommonCOMReader):
         revision_number = options["app_instance"].RevisionNumber
         self._revision = [int(x) for x in revision_number.split(".")]
 
+        # WORKAROUND: API INCONSISTENCY IN 2018
+        # TODO: Contact DessaultSystemes about that. Hope this is already gone after the beta.
         try:
             self._revision_major = self._revision[0]
             self._revision_minor = self._revision[1]
@@ -159,9 +163,10 @@ class SolidWorksReader(CommonCOMReader):
             pass
 
         try:
-            Logger.log("d", "Started %s", SolidWorkVersions.major_version_name[self._revision_major])
+            Logger.log("d", "Started SolidWorks revision: %s", SolidWorkVersions.major_version_name[self._revision_major])
         except KeyError:
-            Logger.logException("w", "Unable to get revision number from solid works RevisionNumber.")
+            Logger.logException("w", "Unable to get revision number from SolidWorks.RevisionNumber.")
+            Logger.logException("d", "The returned revision_number is: {}".format(self._revision))
 
         return options
 
@@ -184,9 +189,6 @@ class SolidWorksReader(CommonCOMReader):
             # Same here. By logic I would assume that we need to undo it, but when processing multiple parts, SolidWorks gets confused again..
             # Or there is another sense..
             #options["app_instance"].Visible = True
-
-            # TODO: Check whether this can be useful. I assume it will close all documents from all windows.
-            #options["app_instance"].CloseAllDocuments(True) # Ensures that all docs have been closed!
             pass
 
     def walkComponentsInAssembly(self, root = None):
@@ -218,52 +220,97 @@ class SolidWorksReader(CommonCOMReader):
             Logger.log("d", "Found %s %s-times in the assembly!" %(key, ComponentsCount[key]))
         """
 
+    def getOpenDocuments(self, options):
+        open_files = []
+        open_file = options["app_instance"].GetFirstDocument
+        while open_file:
+            open_files.append(open_file)
+            open_file = open_file.GetNext
+        Logger.log("i", "Found {} open files..".format(len(open_files)))
+        return open_files
+
+    def getOpenDocumentFilepathDict(self, options):
+        """
+        Returns a dictionary of filepaths and document objects
+        
+        - Apparently we can't get .GetDocuments working
+        """
+        
+        open_files = self.getOpenDocuments(options)
+        open_file_paths = {}
+        for open_file in open_files:
+            open_file_paths[os.path.normpath(open_file.GetPathName)] = open_file
+            open_file = open_file.GetNext
+        return open_file_paths
+
+    def getDocumentTitleByFilepath(self, options, filepath):
+        open_files = self.getOpenDocumentFilepathDict(options)
+        for open_file_path in open_files.keys():
+            if os.path.normpath(filepath) == open_file_path:
+                Logger.log("i", "Found title '{}' for file <{}>".format(open_files[open_file_path].GetTitle,
+                                                                        open_file_path)
+                           )
+                return open_files[open_file_path].GetTitle
+        return None
+
     def openForeignFile(self, options):
-        if options["foreignFormat"].upper() == self._extension_part:
-            filetype = SolidWorksEnums.FileTypes.SWpart
-        elif options["foreignFormat"].upper() == self._extension_assembly:
-            filetype = SolidWorksEnums.FileTypes.SWassembly
+        open_file_paths = self.getOpenDocuments(options)
+
+        options["sw_previous_active_file"] = options['app_instance'].ActiveDoc
+        # If the file has not been loaded open it!
+        if not os.path.normpath(options["foreignFile"]) in open_file_paths:
+            Logger.log("d", "Opening the foreign file!")
+            if options["foreignFormat"].upper() == self._extension_part:
+                filetype = SolidWorksEnums.FileTypes.SWpart
+            elif options["foreignFormat"].upper() == self._extension_assembly:
+                filetype = SolidWorksEnums.FileTypes.SWassembly
+            else:
+                raise NotImplementedError("Unknown extension. Something went terribly wrong!")
+    
+            documentSpecification = options["app_instance"].GetOpenDocSpec(options["foreignFile"])
+    
+            ## NOTE: SPEC: FileName
+            #documentSpecification.FileName
+    
+            ## NOTE: SPEC: DocumentType
+            ## TODO: Really needed here?!
+            documentSpecification.DocumentType = filetype
+    
+            ## TODO: Test the impact of LightWeight = True
+            #documentSpecification.LightWeight = True
+            documentSpecification.Silent = True
+    
+            ## TODO: Double check, whether file was really opened read-only..
+            documentSpecification.ReadOnly = True
+    
+            documentSpecificationObject = ComConnector.GetComObject(documentSpecification)
+            options["sw_model"] = options["app_instance"].OpenDoc7(documentSpecificationObject)
+
+            if documentSpecification.Warning:
+                Logger.log("w", "Warnings happened while opening your SolidWorks file!")
+            if documentSpecification.Error:
+                Logger.log("e", "Errors happened while opening your SolidWorks file!")
+                error_message = Message(i18n_catalog.i18nc("@info:status", "Errors appeared while opening your SolidWorks file! \
+                Please check, whether it is possible to open your file in SolidWorks itself without any problems as well!" ))
+                error_message.show()
+            options["sw_opened_file"] = True
         else:
-            raise NotImplementedError("Unknown extension. Something went terribly wrong!")
+            Logger.log("d", "Foreign file has already been opened!")
+            options["sw_model"] = self.getOpenDocumentFilepathDict(options)[os.path.normpath(options["foreignFile"])]
+            options["sw_opened_file"] = False
 
-        documentSpecification = options["app_instance"].GetOpenDocSpec(options["foreignFile"])
-        filename = os.path.split(options["foreignFile"])[1]
-
-        ## NOTE: SPEC: FileName
-        #documentSpecification.FileName
-
-        ## NOTE: SPEC: DocumentType
-        ## TODO: Really needed here?!
-        documentSpecification.DocumentType = filetype
-
-        ## TODO: Test the impact of LightWeight = True
-        #documentSpecification.LightWeight = True
-        documentSpecification.Silent = True
-
-        ## TODO: Double check, whether file was really opened read-only..
-        documentSpecification.ReadOnly = True
-
-        documentSpecificationObject = ComConnector.GetComObject(documentSpecification)
-        options["sw_model"] = options["app_instance"].OpenDoc7(documentSpecificationObject)
-
-        if documentSpecification.Warning:
-            Logger.log("w", "Warnings happened while opening your SolidWorks file!")
-        if documentSpecification.Error:
-            Logger.log("e", "Errors happened while opening your SolidWorks file!")
-            error_message = Message(i18n_catalog.i18nc("@info:status", "Errors appeared while opening your SolidWorks file! \
-            Please check, whether it is possible to open your file in SolidWorks itself without any problems as well!" ))
-            error_message.show()
-
-        try:
-            error, model_pointer = options["app_instance"].ActivateDoc3(filename, True, SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc)
-            if model_pointer is None:
-                raise ValueError("No pointer has been returned by ActivateDoc3. Something went totally wrong!")
-            Logger.log("i", "Active document is now: <%s>", options["app_instance"].IActiveDoc2.GetPathName())
-        except:
-            Logger.log("d", "Activating the document failed. A patch in comtypes is needed to fix that!")
+        options["sw_model_title"] = self.getDocumentTitleByFilepath(options, options["foreignFile"])
+        
+        ## Neither ActivateDoc3 nor ActivateDoc2 are working - give it up, man!
+        error = ctypes.c_int()
+        options["app_instance"].ActivateDoc3(options["sw_model_title"],
+                                             True,
+                                             SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
+                                             ctypes.byref(error)
+                                             )
 
         # Might be useful in the future, but no need for this ATM
-        #self.configuration = self.model.getActiveConfiguration
+        #self.configuration = options["sw_model"].getActiveConfiguration
         #self.root_component = self.configuration.GetRootComponent
 
         ## EXPERIMENTAL: Browse single parts in assembly
@@ -307,19 +354,31 @@ class SolidWorksReader(CommonCOMReader):
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, swSTLComponentsIntoOneFileBackup)
 
     def closeForeignFile(self, options):
-        if "app_instance" in options.keys():
-            #options["app_instance"].CloseDoc(options["foreignFile"])
-            options["app_instance"].QuitDoc(options["foreignFile"])
+        if "app_instance" in options.keys() and options["sw_opened_file"]:
+            options["app_instance"].CloseDoc(options["sw_model_title"])
+        if options["sw_previous_active_file"]:
+            error = ctypes.c_int()
+            options["app_instance"].ActivateDoc3(options["sw_previous_active_file"].GetTitle,
+                                                 True,
+                                                 SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
+                                                 ctypes.byref(error)
+                                                 )
 
     ## TODO: A functionality like this needs to come back as soon as we have something like a dependency resolver for plugins.
     #def areReadersAvailable(self):
     #    return bool(self._reader_for_file_format)
 
-    def nodePostProcessing(self, node):
+    def nodePostProcessing(self, nodes):
         # TODO: Investigate how the status is on SolidWorks 2018 (now beta)
         if self._revision_major >= 24: # Known problem under SolidWorks 2016 until 2017: Exported models are rotated by -90 degrees. This rotates it back!
             rotation = Quaternion.fromAngleAxis(math.radians(90), Vector.Unit_X)
-            node.rotate(rotation)
-        return node
+            for node in nodes:
+                node.rotate(rotation)
+                
+                # Copy the transformed mesh and reset the transformation
+                # TODO: The following functions are returning bad data or something else.. I don't know.. Models are black afterwards.
+                #node.setMeshData(node.getMeshDataTransformed())
+                #node.setTransformation(Matrix())
+        return nodes
 
     ## Decide if we need to use ascii or binary in order to read file

@@ -5,8 +5,8 @@ from UM.Logger import Logger
 
 # Trying to import one of the COM modules
 try:
-    from .ComTypesConnector import ComConnector
-    Logger.log("i", "ComFactory: Using pywintypes!")
-except ImportError:
     from .PyWin32Connector import ComConnector
+    Logger.log("i", "ComFactory: Using pywin32!")
+except ImportError:
+    from .ComTypesConnector import ComConnector
     Logger.log("i", "ComFactory: Using comtypes!")
