@@ -75,8 +75,10 @@ class SolidWorksReader(CommonCOMReader):
 
         self._extension_part = ".SLDPRT"
         self._extension_assembly = ".SLDASM"
+        self._extension_drawing = ".SLDDRW"
         self._supported_extensions = [self._extension_part.lower(),
                                       self._extension_assembly.lower(),
+                                      self._extension_drawing.lower(),
                                       ]
 
         self._convert_assembly_into_once = True  # False is not implemented now!
@@ -264,6 +266,8 @@ class SolidWorksReader(CommonCOMReader):
                 filetype = SolidWorksEnums.FileTypes.SWpart
             elif options["foreignFormat"].upper() == self._extension_assembly:
                 filetype = SolidWorksEnums.FileTypes.SWassembly
+            elif options["foreignFormat"].upper() == self._extension_drawing:
+                filetype = SolidWorksEnums.FileTypes.SWdrawing
             else:
                 raise NotImplementedError("Unknown extension. Something went terribly wrong!")
     
