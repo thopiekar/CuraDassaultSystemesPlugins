@@ -31,7 +31,20 @@ Cura plugin to support SolidWorks and CATIA filetypes
  
  ## How to install via git (bleeding edge)
  
-   ![Screenshot of clone with Github Desktop](https://github.com/thopiekar/CuraDassaultSystemesPlugins/blob/doc/GitHubDesktopInstall/ManualInstall_CloneWithDesktopApp?raw=true)
+ 0. Prerequirements: Github Desktop (https://desktop.github.com/)
+ 
+ 1. Open Cura and open the plugin browser from the menu: (since 2.7)
+    
+    ![Screenshot of clone with Github Desktop](https://github.com/thopiekar/CuraDassaultSystemesPlugins/blob/doc/GitHubDesktopInstall/ManualInstall_CloneWithDesktopApp.png?raw=true)
+   
+ 2. Open Cura and open the plugin browser from the menu: (since 2.7)
+    
    ![Screenshot of open with Github Desktop](https://github.com/thopiekar/CuraDassaultSystemesPlugins/blob/doc/GitHubDesktopInstall/ManualInstall_ChromeOpenWithDesktopApp.png?raw=true)
-   ![Screenshot of clone dialog](https://github.com/thopiekar/CuraDassaultSystemesPlugins/blob/doc/GitHubDesktopInstall/ManualInstall_CloneToPath.png?raw=true)
-   ![Screenshot of switch branches and sync](https://github.com/thopiekar/CuraDassaultSystemesPlugins/blob/doc/GitHubDesktopInstall/ManualInstall_SwitchBranchesAndUpdate.png?raw=true)
+
+ 3. Open Cura and open the plugin browser from the menu: (since 2.7)
+
+![Screenshot of clone dialog](https://github.com/thopiekar/CuraDassaultSystemesPlugins/blob/doc/GitHubDesktopInstall/ManualInstall_CloneToPath.png?raw=true)
+
+ 4. Open Cura and open the plugin browser from the menu: (since 2.7)
+
+![Screenshot of switch branches and sync](https://github.com/thopiekar/CuraDassaultSystemesPlugins/blob/doc/GitHubDesktopInstall/ManualInstall_SwitchBranchesAndUpdate.png?raw=true)
