@@ -188,14 +188,15 @@ class SolidWorksReader(CommonCOMReader):
                 self._revision_major = self._revision[0]
                 self._revision_minor = self._revision[1]
                 self._revision_patch = self._revision[2]
-            except IndexError:
-                pass
-    
-            try:
+                
                 Logger.log("d", "Started SolidWorks revision: %s", SolidWorkVersions.major_version_name[self._revision_major])
-            except KeyError:
-                Logger.logException("w", "Unable to get revision number from SolidWorks.RevisionNumber.")
-                Logger.logException("d", "The returned revision_number is: {}".format(self._revision))
+            except IndexError:
+                Logger.logException("w", "Unable to parse revision number from SolidWorks.RevisionNumber. revision_number is: {revision_number}.".format(revision_number = self._revision))
+            except:
+                Logger.logException("c", "Unexpected error: revision_number = {revision_number}".format(revision_number = self._revision))
+    
+        else:
+            Logger.log("c", "revision_number has a wrong type: {}".format(type(revision_number)))
 
         return options
 
