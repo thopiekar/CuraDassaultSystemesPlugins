@@ -43,10 +43,27 @@ def get_software_install_path(major_version):
     sldwks_exe = winreg.QueryValue(winreg.HKEY_CLASSES_ROOT, regpath)
     sldwks_exe = sldwks_exe.split()[0]
     sldwks_exe = convertDosPathIntoLongPath(sldwks_exe)
-    
     sldwkd_inst = os.path.split(sldwks_exe)[0]
     return sldwkd_inst
 
+def is_software_revision(major_version):
+    # The function is running in the main thraed. No Co-/UnCoInit needed..
+    try:
+        ComConnector.CoInit()
+        has_coinited = True
+    except:
+        has_coinited = False
+    app_instance = ComConnector.CreateClassObject("SldWorks.Application.{}".format(major_version))
+    revision_number = app_instance.RevisionNumber
+    del(app_instance)
+    if has_coinited:
+        ComConnector.UnCoInit()
+    if isinstance(revision_number, str):
+        revision_splitted = [int(x) for x in revision_number.split(".")]
+        if revision_splitted[0] == major_version:
+            return True
+    return False
+    
 def is_software_install_path(major_version):
     # Also check whether the executable can be found..
     # Why? - SolidWorks 2017 lefts an key after uninstallation, which points to an orphaned path.
@@ -57,7 +74,18 @@ def is_software_install_path(major_version):
         return False
 
 def is_sldwks_installed(major_version):
-    return is_sldwks_service(major_version) and is_software_install_path(major_version)
+    sldwks_name = SolidWorkVersions.major_version_name[major_version]
+    if not is_sldwks_service(major_version):
+        Logger.log("w", "Found no COM service for '{}'! Ignoring..".format(sldwks_name))
+        return False
+    if not is_software_install_path(major_version):
+        Logger.log("w", "Found no executable for '{}'! Ignoring..".format(sldwks_name))
+        return False
+    if not is_software_revision(major_version):
+        Logger.log("w", "COM server can't confirm the major version for '{}'. This is a rotten installation! Ignoring..".format(sldwks_name))
+        return False
+    Logger.log("i", "Success! Installation of '{}' seems to be valid!".format(sldwks_name))
+    return True
     
 def return_available_versions():
     versions = []
