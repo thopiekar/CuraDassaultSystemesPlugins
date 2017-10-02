@@ -147,8 +147,16 @@ class SolidWorksReader(CommonCOMReader):
 
         # Keep SolidWorks frame invisible when ISldWorks::ActivateDoc2 is called
         options["app_frame"] = options["app_instance"].Frame
-        options["app_frame"].KeepInvisible = True
-
+        
+        # Calling .KeepInvisible can't be found on one installation I saw.
+        # Let's do it whenever possible.
+        try:
+            # This is something we definitely want to do!
+            # http://help.solidworks.com/2016/english/api/sldworksapi/SolidWorks.Interop.sldworks~SolidWorks.Interop.sldworks.IFrame~KeepInvisible.html?verRedirect=1
+            options["app_frame"].KeepInvisible = True
+        except:
+            Logger.logException("c", "Unable to keep the frame invisible!")
+        
         # Getting revision after starting
         revision_number = options["app_instance"].RevisionNumber
         self._revision = [int(x) for x in revision_number.split(".")]
