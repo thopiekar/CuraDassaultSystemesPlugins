@@ -162,7 +162,7 @@ class SolidWorksReader(CommonCOMReader):
     
         # Sometimes it can happen that the revision number returned here is None
         # TODO: Ask DessaultSystemes how it comes and how to get the value properly without any issues..
-        if revision_number:
+        if isinstance(revision_number, str):
             self._revision = [int(x) for x in revision_number.split(".")]
             try:
                 self._revision_major = self._revision[0]
