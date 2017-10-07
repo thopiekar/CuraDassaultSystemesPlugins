@@ -1,1 +1,0 @@
-# Copyright (c) 2017 Thomas Karl Pietrowski
