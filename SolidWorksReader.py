@@ -20,11 +20,11 @@ from UM.Mesh.MeshReader import MeshReader
 from UM.PluginRegistry import PluginRegistry
 
 # Our plugin
-from .CommonComReader import CommonCOMReader
 from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions
 from .SolidWorksReaderUI import SolidWorksReaderUI
 from .SystemUtils import convertDosPathIntoLongPath
-from .ComFactory import ComConnector
+from .CadIntegrationUtils.CommonComReader import CommonCOMReader # @UnresolvedImport
+from .CadIntegrationUtils.ComFactory import ComConnector # @UnresolvedImport
 
 
 i18n_catalog = i18nCatalog("CuraDassaultSystemesPlugins")
