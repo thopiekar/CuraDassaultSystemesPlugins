@@ -1,0 +1,3 @@
+[submodule "CadIntegrationUtils"]
+	path = CadIntegrationUtils
+	url = https://github.com/thopiekar/CadIntegrationUtils
