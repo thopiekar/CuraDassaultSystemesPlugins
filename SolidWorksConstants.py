@@ -46,6 +46,10 @@ class SolidWorksEnums:
         swExportSTLQuality = 78
         swExportStlUnits = 211
 
+    class swUserPreferenceDoubleValue_e:
+        swSTLDeviation = 2
+        swSTLAngleTolerance = 3
+    
     class swSTLQuality_e:
         swSTLQuality_Coarse = 1
         swSTLQuality_Fine = 2
