@@ -10,21 +10,21 @@ import winreg
 import ctypes
 
 # Uranium/Cura
-from UM.i18n import i18nCatalog
-from UM.Message import Message
-from UM.Logger import Logger
-from UM.Math.Matrix import Matrix
-from UM.Math.Vector import Vector
-from UM.Math.Quaternion import Quaternion
-from UM.Mesh.MeshReader import MeshReader
-from UM.PluginRegistry import PluginRegistry
+from UM.i18n import i18nCatalog # @UnresolvedImport
+from UM.Message import Message # @UnresolvedImport
+from UM.Logger import Logger # @UnresolvedImport
+from UM.Math.Matrix import Matrix # @UnresolvedImport
+from UM.Math.Vector import Vector # @UnresolvedImport
+from UM.Math.Quaternion import Quaternion # @UnresolvedImport
+from UM.Mesh.MeshReader import MeshReader # @UnresolvedImport
+from UM.PluginRegistry import PluginRegistry # @UnresolvedImport
 
 # Our plugin
-from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions
-from .SolidWorksReaderUI import SolidWorksReaderUI
-from .SystemUtils import convertDosPathIntoLongPath
 from .CadIntegrationUtils.CommonComReader import CommonCOMReader # @UnresolvedImport
 from .CadIntegrationUtils.ComFactory import ComConnector # @UnresolvedImport
+from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions # @UnresolvedImport
+from .SolidWorksReaderUI import SolidWorksReaderUI # @UnresolvedImport
+from .SystemUtils import convertDosPathIntoLongPath # @UnresolvedImport
 
 
 i18n_catalog = i18nCatalog("CuraDassaultSystemesPlugins")
