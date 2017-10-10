@@ -1,11 +1,22 @@
 # CuraSolidWorksPlugin
 Cura plugin to support SolidWorks filetypes 
 
-## Requirements:
+## Contents:
+- [Install via plugin browser](#how-to-install-via-plugin-browser)
+- [Install via GitHub Desktop app](#how-to-install-via-git-bleeding-edge)
+
+## Credits
+- Ultimaker: Giving the creative room and an open ear on new ideas! I'm always proud to say, that I can work together with you!
+
+## Thanks and greetings
+- Dessault Systemes: For their professional and helpful support on API questions!
+
+## Installation
+* Requirements:
  * SolidWorks itself (2016, 2017 and 2018 are supported)
  * A valid licence!
 
-## How to install via plugin browser
+### How to install via plugin browser
 
  1. Open Cura and open the plugin browser from the menu: (since 2.7)
     
@@ -27,7 +38,7 @@ Cura plugin to support SolidWorks filetypes
  
     ![Screenshot of supported files](https://github.com/thopiekar/CuraDassaultSystemesPlugins/blob/doc/PluginBrowserInstallation/PreferencesListOfPlugins.png?raw=true)
  
- ## How to install via git (bleeding edge)
+ ### How to install via git (bleeding edge)
  
  0. Prerequirements: Github Desktop (https://desktop.github.com/)
  
