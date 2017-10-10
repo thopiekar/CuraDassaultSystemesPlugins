@@ -26,14 +26,6 @@ def getMetaData():
                                         "description": i18n_catalog.i18nc("@item:inlistbox", "SolidWorks assembly file")
                                     },
                                     ]
-
-    # TODO:
-    # Needs more documentation on how to convert a CATproduct in CATIA using COM API
-    #
-    #{
-    #    "extension": "CATProduct",
-    #    "description": i18n_catalog.i18nc("@item:inlistbox", "CATproduct file")
-    #}
     
     return metaData
 
