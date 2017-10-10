@@ -45,7 +45,7 @@ UM.Dialog
     {
         spacing: UM.Theme.getSize("default_margin").width
 
-        UM.I18nCatalog { id: catalog; name: "CuraSolidWorksPlugin" }
+        UM.I18nCatalog { id: catalog; name: "SolidWorksPlugin" }
 
         Column
         {

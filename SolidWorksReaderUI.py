@@ -15,7 +15,7 @@ from UM.i18n import i18nCatalog
 
 from UM.Preferences import Preferences
 
-catalog = i18nCatalog("cura")
+catalog = i18nCatalog("SolidWorksPlugin")
 
 
 class SolidWorksReaderUI(QObject):

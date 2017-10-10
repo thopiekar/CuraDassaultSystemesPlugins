@@ -17,7 +17,7 @@ UM.Dialog
     height: 100 * Screen.devicePixelRatio
     minimumHeight: 100 * Screen.devicePixelRatio
 
-    title: catalog.i18nc("@title:window", "Cura SolidWorks Plugin Configuration")
+    title: catalog.i18nc("@title:window", "SolidWorks Plugin - Configuration")
 
     onVisibilityChanged:
     {
@@ -29,7 +29,7 @@ UM.Dialog
 
     GridLayout
     {
-        UM.I18nCatalog{id: catalog; name: "cura"}
+        UM.I18nCatalog{id: catalog; name: "SolidWorksPlugin"}
         anchors.fill: parent
         Layout.fillWidth: true
         columnSpacing: 16

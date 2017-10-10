@@ -27,7 +27,7 @@ from .SolidWorksReaderUI import SolidWorksReaderUI # @UnresolvedImport
 from .SystemUtils import convertDosPathIntoLongPath # @UnresolvedImport
 
 
-i18n_catalog = i18nCatalog("CuraDassaultSystemesPlugins")
+i18n_catalog = i18nCatalog("SolidWorksPlugin")
 
 def is_sldwks_service(major_version):
     sldwks_app_name =  "SldWorks.Application.{}".format(major_version)

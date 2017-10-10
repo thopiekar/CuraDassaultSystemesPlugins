@@ -11,7 +11,7 @@ from PyQt5.QtQml import QQmlComponent, QQmlContext
 
 import os
 
-i18n_catalog = i18nCatalog("cura")
+i18n_catalog = i18nCatalog("SolidWorksPlugin")
 
 
 class SolidWorksDialogHandler(QObject, Extension):

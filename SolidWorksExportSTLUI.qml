@@ -30,7 +30,7 @@ UM.Dialog
 
     GridLayout
     {
-        UM.I18nCatalog{id: catalog; name: "cura"}
+        UM.I18nCatalog{id: catalog; name: "SolidWorksPlugin"}
         anchors.fill: parent;
         Layout.fillWidth: true
         columnSpacing: 16
