@@ -2,7 +2,7 @@
 Cura plugin to support SolidWorks filetypes 
 
 ## Requirements:
- * SolidWorks (version 2016 is in main focus of development at the moment)
+ * SolidWorks itself (2016, 2017 and 2018 are supported)
  * A valid licence!
 
 ## How to install via plugin browser
