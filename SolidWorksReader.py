@@ -99,7 +99,7 @@ def is_any_sldwks_installed():
 
 class SolidWorksReader(CommonCOMReader):
     def __init__(self):
-        super().__init__("SldWorks.Application", "SolidWorks")
+        super().__init__("SolidWorks", "SldWorks.Application")
 
         self._extension_part = ".SLDPRT"
         self._extension_assembly = ".SLDASM"
@@ -124,6 +124,23 @@ class SolidWorksReader(CommonCOMReader):
     @property
     def _app_names(self):
         return ["SldWorks.Application.{}".format(major_version) for major_version in return_available_versions()] + super()._app_names
+    
+    @property
+    def _reader_for_file_format(self):
+        _reader_for_file_format = {}
+
+        # Trying 3MF first because it describes the model much better..
+        # However, this is untested since this plugin was only tested with STL support
+        if PluginRegistry.getInstance().isActivePlugin("3MFReader"):
+            _reader_for_file_format["3mf"] = PluginRegistry.getInstance().getPluginObject("3MFReader")
+
+        if PluginRegistry.getInstance().isActivePlugin("STLReader"):
+            _reader_for_file_format["stl"] = PluginRegistry.getInstance().getPluginObject("STLReader")
+
+        if not len(_reader_for_file_format):
+            Logger.log("d", "Could not find any reader for (probably) supported file formats!")
+
+        return _reader_for_file_format
     
     @property
     def _file_formats_first_choice(self):
