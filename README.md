@@ -1,10 +1,8 @@
-# CuraDassaultSystemesPlugins
-Cura plugin to support SolidWorks and CATIA filetypes 
+# CuraSolidWorksPlugin
+Cura plugin to support SolidWorks filetypes 
 
 ## Requirements:
- * Either SolidWorks or CATIA
-   * SolidWorks (version 2016 is in main focus of development at the moment)
-   * CATIA (version R18 - old, but the only one I have access to by my university)
+ * SolidWorks (version 2016 is in main focus of development at the moment)
  * A valid licence!
 
 ## How to install via plugin browser
