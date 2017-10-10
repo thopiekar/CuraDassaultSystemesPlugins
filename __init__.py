@@ -3,7 +3,7 @@
 from UM.Platform import Platform
 
 from UM.i18n import i18nCatalog
-i18n_catalog = i18nCatalog("CuraDassaultSystemesPlugins")
+i18n_catalog = i18nCatalog("SolidWorksPlugin")
 
 if Platform.isWindows():
     # For installation check
