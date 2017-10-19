@@ -343,8 +343,7 @@ class SolidWorksReader(CommonCOMReader):
                 Logger.log("w", "Warnings happened while opening your SolidWorks file!")
             if documentSpecification.Error:
                 Logger.log("e", "Errors happened while opening your SolidWorks file!")
-                error_message = Message(i18n_catalog.i18nc("@info:status", "Errors appeared while opening your SolidWorks file! \
-                Please check, whether it is possible to open your file in SolidWorks itself without any problems as well!" ))
+                error_message = Message(i18n_catalog.i18nc("@info:status", "SolidWorks reported errors, while opening your file. We recommend to solve these issues inside SolidWorks itself." ))
                 error_message.show()
             options["sw_opened_file"] = True
         else:
