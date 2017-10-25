@@ -20,7 +20,9 @@ class SolidWorksDialogHandler(QObject, Extension):
         self._config_dialog = None
         self._tutorial_dialog = None
         self.addMenuItem(i18n_catalog.i18n("Configure"), self._openConfigDialog)
-        self.addMenuItem(i18n_catalog.i18n("Installation guide for SolidWorks macro"), self._openTutorialDialog)
+        
+        ## Temporary not mentioned!
+        #self.addMenuItem(i18n_catalog.i18n("Installation guide for SolidWorks macro"), self._openTutorialDialog)
 
     def _openConfigDialog(self):
         if not self._config_dialog:
