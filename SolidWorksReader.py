@@ -62,6 +62,10 @@ def is_software_revision(major_version):
         revision_splitted = [int(x) for x in revision_number.split(".")]
         if revision_splitted[0] == major_version:
             return True
+        else:
+            Logger.log("e", "Revision does not fit to {}.x.y: {}".format(major_version, revision_number))
+    else:
+        Logger.log("e", "Wrong datatype: {}".format(repr(revision_number)))
     return False
     
 def is_software_install_path(major_version):
