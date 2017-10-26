@@ -2,7 +2,7 @@
     "name": "SolidWorks Integration",
     "author": "Thomas Karl Pietrowski",
     "email" : "thopiekar@gmail.com",
-    "version": "0.3.3",
+    "version": "0.3.4",
     "supported_os" : ["Windows"],
     "description": "Gives you the possibility to open certain files using SolidWorks itself. Conversion is done by this plugin and additional optimizations.",
     "api": 4,
