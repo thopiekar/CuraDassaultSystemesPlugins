@@ -1,0 +1,81 @@
+Dim swApp As ISldWorks
+Dim Part As Object
+Dim tempFileName As String
+
+Dim myWS As Object
+
+Dim curaVersion As String
+Dim curaDir As String
+
+
+Private Function EnumerateRegistryKeys(hive, key) As Collection
+  Dim curaKeyNames As New Collection
+  Dim idx As Integer
+  idx = 1
+
+  'get all Cura key names
+  Set reg = GetObject("winmgmts://./root/default:StdRegProv")
+  reg.EnumKey hive, key, arrSubKeys
+  If Not IsNull(arrSubKeys) Then
+    For Each subkey In arrSubKeys
+      If InStr(1, subkey, "Cura ") = 1 Then
+        curaKeyNames.Add subkey
+        idx = idx + 1
+      End If
+    Next
+  End If
+
+  'sort the cura key names with the latest version first
+  Dim i As Long, j As Long
+  Dim vTemp As Variant
+
+  'Two loops to bubble sort
+  For i = 1 To curaKeyNames.count - 1
+    For j = i + 1 To curaKeyNames.count
+      If curaKeyNames(i) < curaKeyNames(j) Then
+        'store the lesser item
+        vTemp = curaKeyNames(j)
+        'remove the lesser item
+        curaKeyNames.Remove j
+        're-add the lesser item before the
+        'greater Item
+        curaKeyNames.Add vTemp, vTemp, i
+      End If
+    Next j
+  Next i
+
+  Set EnumerateRegistryKeys = curaKeyNames
+End Function
+
+
+Sub main()
+  Set swApp = Application.SldWorks
+  Set Part = swApp.ActiveDoc
+  
+  tempFileName = Part.GetPathName()
+  
+  ' Figure out where Cura is installed.
+  Const HKEY_LOCAL_MACHINE = &H80000002
+  strKeyPath = "SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall"
+
+  ' Get all possible Cura locations
+  Dim curaDirNames As Collection
+  Set curaDirNames = EnumerateRegistryKeys(HKEY_LOCAL_MACHINE, strKeyPath)
+  If curaDirNames.count = 0 Then
+    MsgBox "Cannot find Cura on this computer.", vbInformation + vbOKOnly, "Cannot find Cura"
+  End If
+  Dim curaName As String
+  curaName = curaDirNames.Item(1)  'use the first one which is the latest version
+
+  ' Get Cura location
+  Set myWS = CreateObject("WScript.Shell")
+  curaDir = myWS.RegRead("HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\" & curaName & "\DisplayIcon")
+  ' remove the icon file
+  Dim lastSlashIdx As Long
+  lastSlashIdx = InStrRev(curaDir, "\")
+  curaDir = Left(curaDir, lastSlashIdx)
+
+  Shell """" & curaDir & "Cura.exe"" --single-instance " & """" & tempFileName & """"
+
+End Sub
+
