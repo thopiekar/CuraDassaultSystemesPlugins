@@ -25,6 +25,10 @@ def getMetaData():
                                         "extension": "SLDASM",
                                         "description": i18n_catalog.i18nc("@item:inlistbox", "SolidWorks assembly file")
                                     },
+                                    {
+                                        "extension": "SLDDRW",
+                                        "description": i18n_catalog.i18nc("@item:inlistbox", "SolidWorks drawing file")
+                                    },
                                     ]
     
     return metaData

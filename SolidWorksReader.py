@@ -107,8 +107,10 @@ class SolidWorksReader(CommonCOMReader):
 
         self._extension_part = ".SLDPRT"
         self._extension_assembly = ".SLDASM"
+        self._extension_drawing = ".SLDDRW"
         self._supported_extensions = [self._extension_part.lower(),
                                       self._extension_assembly.lower(),
+                                      self._extension_drawing.lower(),
                                       ]
 
         self._convert_assembly_into_once = True  # False is not implemented now!
@@ -321,6 +323,8 @@ class SolidWorksReader(CommonCOMReader):
                 filetype = SolidWorksEnums.FileTypes.SWpart
             elif options["foreignFormat"].upper() == self._extension_assembly:
                 filetype = SolidWorksEnums.FileTypes.SWassembly
+            elif options["foreignFormat"].upper() == self._extension_drawing:
+                filetype = SolidWorksEnums.FileTypes.SWdrawing
             else:
                 raise NotImplementedError("Unknown extension. Something went terribly wrong!")
     
@@ -342,6 +346,13 @@ class SolidWorksReader(CommonCOMReader):
     
             documentSpecificationObject = ComConnector.GetComObject(documentSpecification)
             options["sw_model"] = options["app_instance"].OpenDoc7(documentSpecificationObject)
+
+            if options["foreignFormat"].upper() == self._extension_drawing:
+                selectionManager =  options["sw_model"].SelectionManager
+                count = selectionManager.GetSelectedObjectCount2(-1)
+                Logger.log("d", "Found {} objects..".format(count))
+                selectionManager.GetSelectedObject6(0, -1)
+
 
             if documentSpecification.Warning:
                 Logger.log("w", "Warnings happened while opening your SolidWorks file!")
