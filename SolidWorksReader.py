@@ -369,6 +369,8 @@ class SolidWorksReader(CommonCOMReader):
         options["sw_model_title"] = self.getDocumentTitleByFilepath(options, options["foreignFile"])
         
         error = ctypes.c_int()
+        
+        # SolidWorks API: >= 20.0.x
         options["app_instance"].ActivateDoc3(options["sw_model_title"],
                                              True,
                                              SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
