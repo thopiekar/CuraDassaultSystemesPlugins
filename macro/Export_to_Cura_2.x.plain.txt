@@ -18,7 +18,7 @@ Private Function EnumerateRegistryKeys(hive, key) As Collection
   reg.EnumKey hive, key, arrSubKeys
   If Not IsNull(arrSubKeys) Then
     For Each subkey In arrSubKeys
-      If InStr(1, subkey, "Cura ") = 1 Then
+      If InStr(1, subkey, "Cura ") = 1 Or InStr(1, subkey, "Ultimaker Cura ") = 1 Then
         curaKeyNames.Add subkey
         idx = idx + 1
       End If
@@ -30,8 +30,8 @@ Private Function EnumerateRegistryKeys(hive, key) As Collection
   Dim vTemp As Variant
 
   'Two loops to bubble sort
-  For i = 1 To curaKeyNames.count - 1
-    For j = i + 1 To curaKeyNames.count
+  For i = 1 To curaKeyNames.Count - 1
+    For j = i + 1 To curaKeyNames.Count
       If curaKeyNames(i) < curaKeyNames(j) Then
         'store the lesser item
         vTemp = curaKeyNames(j)
@@ -61,7 +61,7 @@ Sub main()
   ' Get all possible Cura locations
   Dim curaDirNames As Collection
   Set curaDirNames = EnumerateRegistryKeys(HKEY_LOCAL_MACHINE, strKeyPath)
-  If curaDirNames.count = 0 Then
+  If curaDirNames.Count = 0 Then
     MsgBox "Cannot find Cura on this computer.", vbInformation + vbOKOnly, "Cannot find Cura"
   End If
   Dim curaName As String
@@ -78,4 +78,3 @@ Sub main()
   Shell """" & curaDir & "Cura.exe"" --single-instance " & """" & tempFileName & """"
 
 End Sub
-
