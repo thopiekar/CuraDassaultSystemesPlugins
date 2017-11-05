@@ -17,4 +17,3 @@ print(foo.RevisionNumber())
 
 if was_active:
     foo.ExitApp()
-
