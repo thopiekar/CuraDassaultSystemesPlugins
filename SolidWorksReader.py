@@ -357,7 +357,6 @@ class SolidWorksReader(CommonCOMReader):
 
         options["sw_model_title"] = self.getDocumentTitleByFilepath(options, options["foreignFile"])
         
-        ## Neither ActivateDoc3 nor ActivateDoc2 are working - give it up, man!
         error = ctypes.c_int()
         options["app_instance"].ActivateDoc3(options["sw_model_title"],
                                              True,
