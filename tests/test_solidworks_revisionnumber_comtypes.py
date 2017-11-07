@@ -15,5 +15,5 @@ except:
 
 print(foo.RevisionNumber())
 
-if was_active:
+if not was_active:
     foo.ExitApp()
