@@ -94,3 +94,6 @@ ENV/
 # Eclipse + PyDev
 .project
 .pydevproject
+
+# Ignore generated win32com files in tests/
+tests/gen_dir/

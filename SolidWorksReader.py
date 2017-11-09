@@ -7,7 +7,6 @@
 import math
 import os
 import winreg
-import ctypes
 
 # Uranium/Cura
 from UM.i18n import i18nCatalog # @UnresolvedImport
@@ -368,13 +367,12 @@ class SolidWorksReader(CommonCOMReader):
 
         options["sw_model_title"] = self.getDocumentTitleByFilepath(options, options["foreignFile"])
         
-        error = ctypes.c_int()
-        
+        error = ComConnector.getByVarInt()
         # SolidWorks API: >= 20.0.x
         options["app_instance"].ActivateDoc3(options["sw_model_title"],
                                              True,
                                              SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
-                                             ctypes.byref(error)
+                                             error,
                                              )
 
         # Might be useful in the future, but no need for this ATM
@@ -425,11 +423,11 @@ class SolidWorksReader(CommonCOMReader):
         if "app_instance" in options.keys() and options["sw_opened_file"]:
             options["app_instance"].CloseDoc(options["sw_model_title"])
         if options["sw_previous_active_file"]:
-            error = ctypes.c_int()
+            error = ComConnector.getByVarInt()
             options["app_instance"].ActivateDoc3(options["sw_previous_active_file"].GetTitle,
                                                  True,
                                                  SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
-                                                 ctypes.byref(error)
+                                                 error
                                                  )
 
     ## TODO: A functionality like this needs to come back as soon as we have something like a dependency resolver for plugins.
