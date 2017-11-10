@@ -25,6 +25,8 @@ from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions # @Unresolve
 from .SolidWorksReaderUI import SolidWorksReaderUI # @UnresolvedImport
 from .SystemUtils import convertDosPathIntoLongPath # @UnresolvedImport
 
+# 3rd-party
+import numpy
 
 i18n_catalog = i18nCatalog("SolidWorksPlugin")
 
@@ -436,13 +438,18 @@ class SolidWorksReader(CommonCOMReader):
 
     def nodePostProcessing(self, nodes):
         # TODO: Investigate how the status is on SolidWorks 2018 (now beta)
-        if self._revision_major >= 24: # Known problem under SolidWorks 2016 until 2017: Exported models are rotated by -90 degrees. This rotates it back!
+        if self._revision_major >= 24: # Known problem under SolidWorks 2016 until 2017: Exported models are rotated by -90 degrees. This rotates them back!
             rotation = Quaternion.fromAngleAxis(math.radians(90), Vector.Unit_X)
+            zero_translation = Matrix(data=numpy.zeros(3))
             for node in nodes:
                 node.rotate(rotation)
                 
                 # Copy the transformed mesh and reset the transformation
                 # TODO: The following functions are returning bad data or something else.. I don't know.. Models are black afterwards.
+                mesh_data = node.getMeshData()
+                transformation_matrix = node.getLocalTransformation()
+                transformation_matrix.setTranslation(zero_translation)
+                mesh_data.getTransformed(transformation_matrix) 
                 #node.setMeshData(node.getMeshDataTransformed())
                 #node.setTransformation(Matrix())
         return nodes
