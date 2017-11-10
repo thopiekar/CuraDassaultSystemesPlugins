@@ -33,9 +33,9 @@ def register(app):
     # Solid works only runs on Windows.
     plugin_data = {}
     if Platform.isWindows():
-        reader = SolidWorksReader.SolidWorksReader()
         # TODO: Feature: Add at this point an early check, whether readers are available. See: reader.areReadersAvailable()
         if SolidWorksReader.is_any_sldwks_installed():
+            reader = SolidWorksReader.SolidWorksReader()
             plugin_data["mesh_reader"] = reader
         from .SolidWorksDialogHandler import SolidWorksDialogHandler
         plugin_data["extension"] = SolidWorksDialogHandler()
