@@ -447,15 +447,16 @@ class SolidWorksReader(CommonCOMReader):
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, swSTLComponentsIntoOneFileBackup)
 
     def closeForeignFile(self, options):
-        if "app_instance" in options.keys() and options["sw_opened_file"]:
+        if "app_instance" in options.keys() and "sw_model_title" in options.keys():
             options["app_instance"].CloseDoc(options["sw_model_title"])
-        if options["sw_previous_active_file"]:
-            error = ComConnector.getByVarInt()
-            options["app_instance"].ActivateDoc3(options["sw_previous_active_file"].GetTitle,
-                                                 True,
-                                                 SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
-                                                 error
-                                                 )
+        if "sw_previous_active_file" in options.keys():
+            if options["sw_previous_active_file"]:
+                error = ComConnector.getByVarInt()
+                options["app_instance"].ActivateDoc3(options["sw_previous_active_file"].GetTitle,
+                                                     True,
+                                                     SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
+                                                     error
+                                                     )
 
     ## TODO: A functionality like this needs to come back as soon as we have something like a dependency resolver for plugins.
     #def areReadersAvailable(self):
