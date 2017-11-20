@@ -1,5 +1,8 @@
 # Copyright (c) 2017 Ultimaker B.V.
 # PluginBrowser is released under the terms of the AGPLv3 or higher.
+
+import os
+
 from UM.Extension import Extension
 from UM.i18n import i18nCatalog
 from UM.Logger import Logger
@@ -8,8 +11,6 @@ from UM.Application import Application
 
 from PyQt5.QtCore import QUrl, QObject, pyqtSlot
 from PyQt5.QtQml import QQmlComponent, QQmlContext
-
-import os
 
 i18n_catalog = i18nCatalog("SolidWorksPlugin")
 
