@@ -38,10 +38,13 @@ class SolidWorksReaderUI(QObject):
         return self._cancelled
 
     def waitForUIToClose(self):
+        Logger.log("d", "Waitiung for UI to close..")
         self._ui_lock.acquire()
+        Logger.log("d", "Got lock and releasing it now..")
         self._ui_lock.release()
+        Logger.log("d", "Lock released!")
 
-    def showConfigUI(self):
+    def showConfigUI(self, blocking = False):
         self._ui_lock.acquire()
         preference = Preferences.getInstance().getValue("cura_solidworks/choice_on_exporting_stl_quality")
         if preference != "always_ask":
@@ -55,6 +58,10 @@ class SolidWorksReaderUI(QObject):
             return
         self._cancelled = False
         self.show_config_ui_trigger.emit()
+        
+        if blocking:
+            Logger.log("d", "Waitiung for UI to close..")
+            self.waitForUIToClose()
 
     @pyqtSlot(str, bool)
     def setQuality(self, quality, remember_my_choice):
@@ -84,12 +91,14 @@ class SolidWorksReaderUI(QObject):
 
     @pyqtSlot()
     def onOkButtonClicked(self):
+        Logger.log("d", "Clicked on OkButton")
         self._cancelled = False
         self._ui_view.close()
         self._ui_lock.release()
 
     @pyqtSlot()
     def onCancelButtonClicked(self):
+        Logger.log("d", "Clicked on CancelButton")
         self._cancelled = True
         self._ui_view.close()
         self._ui_lock.release()

@@ -172,11 +172,13 @@ class SolidWorksReader(CommonCOMReader):
 
         return _file_formats_first_choice
 
-    def preRead(self, file_name, *args, **kwargs):
-        self._ui.showConfigUI()
-        self._ui.waitForUIToClose()
+    def preRead(self, options):
+        super().preRead(options)
 
+        Logger.log("d", "Showing wizard, if needed..")
+        self._ui.showConfigUI(blocking = True)
         if self._ui.getCancelled():
+            Logger.log("d", "User cancelled conversion of file!")
             return MeshReader.PreReadResult.cancelled
 
         # get quality
@@ -188,6 +190,7 @@ class SolidWorksReader(CommonCOMReader):
         # give actual value for quality
         self._selected_quality = self._quality_value_map.get(self._selected_quality,
                                                              SolidWorksEnums.swSTLQuality_e.swSTLQuality_Fine)
+        Logger.log("d", "Continuing to convert file..")
 
         return MeshReader.PreReadResult.accepted
 
@@ -204,7 +207,7 @@ class SolidWorksReader(CommonCOMReader):
         options["app_instance_user_control"] = options["app_instance"].UserControl
         options["app_instance"].UserControl = False
 
-        #  ' If the following property is true, then the SolidWorks frame will be visible on a call to ISldWorks::ActivateDoc2; so set it to false
+        # If the following property is true, then the SolidWorks frame will be visible on a call to ISldWorks::ActivateDoc2; so set it to false
         options["app_instance_visible"] = options["app_instance"].Visible
         options["app_instance"].Visible = False
 
