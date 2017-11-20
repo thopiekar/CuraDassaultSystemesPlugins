@@ -33,7 +33,6 @@ class SolidWorksReaderUI(QObject):
         self._ui_view = None
         self.show_config_ui_trigger.connect(self._onShowConfigUI)
 
-
         self._ui_lock = threading.Lock()
 
     def getCancelled(self):
