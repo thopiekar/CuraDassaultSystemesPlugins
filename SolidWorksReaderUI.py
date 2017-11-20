@@ -77,14 +77,13 @@ class SolidWorksReaderUI(QObject):
         self._ui_view.show()
 
     def _createConfigUI(self):
-        if self._ui_view is None:
-            path = QUrl.fromLocalFile(os.path.join(os.path.split(__file__)[0], "SolidWorksExportSTLUI.qml"))
-            component = QQmlComponent(Application.getInstance()._engine, path)
-            self._ui_context = QQmlContext(Application.getInstance()._engine.rootContext())
-            self._ui_context.setContextProperty("manager", self)
-            self._ui_view = component.create(self._ui_context)
+        path = QUrl.fromLocalFile(os.path.join(os.path.split(__file__)[0], "SolidWorksExportSTLUI.qml"))
+        component = QQmlComponent(Application.getInstance()._engine, path)
+        self._ui_context = QQmlContext(Application.getInstance()._engine.rootContext())
+        self._ui_context.setContextProperty("manager", self)
+        self._ui_view = component.create(self._ui_context)
 
-            self._ui_view.setFlags(self._ui_view.flags() & ~Qt.WindowCloseButtonHint & ~Qt.WindowMinimizeButtonHint & ~Qt.WindowMaximizeButtonHint)
+        self._ui_view.setFlags(self._ui_view.flags() & ~Qt.WindowCloseButtonHint & ~Qt.WindowMinimizeButtonHint & ~Qt.WindowMaximizeButtonHint)
 
     @pyqtSlot()
     def onOkButtonClicked(self):
