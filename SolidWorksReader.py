@@ -130,10 +130,7 @@ class SolidWorksReader(CommonCOMReader):
         self._revision_patch = 0
 
         self._ui = SolidWorksReaderUI()
-        self._selected_quality = None
-        self._quality_value_map = {"coarse": SolidWorksEnums.swSTLQuality_e.swSTLQuality_Coarse,
-                                   "fine": SolidWorksEnums.swSTLQuality_e.swSTLQuality_Fine}
-
+        
         self.root_component = None
 
 
@@ -180,16 +177,6 @@ class SolidWorksReader(CommonCOMReader):
         if self._ui.getCancelled():
             Logger.log("d", "User cancelled conversion of file!")
             return MeshReader.PreReadResult.cancelled
-
-        # get quality
-        self._selected_quality = self._ui.quality
-        if self._selected_quality is None:
-            self._selected_quality = "fine"
-        self._selected_quality = self._selected_quality.lower()
-
-        # give actual value for quality
-        self._selected_quality = self._quality_value_map.get(self._selected_quality,
-                                                             SolidWorksEnums.swSTLQuality_e.swSTLQuality_Fine)
         Logger.log("d", "Continuing to convert file..")
 
         return MeshReader.PreReadResult.accepted
@@ -392,20 +379,54 @@ class SolidWorksReader(CommonCOMReader):
 
     def exportFileAs(self, options):
         if options["tempType"] == "stl":
+            # # Backing up everything
             if options["foreignFormat"].upper() == self._extension_assembly:
                 # Backing up current setting of swSTLComponentsIntoOneFile
                 swSTLComponentsIntoOneFileBackup = options["app_instance"].GetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile)
+
+            # Backing up quality settings
+            swExportSTLQualityBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality)
+            # Backing up the default unit for STLs to mm, which is expected by Cura
+            swExportStlUnitsBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits)
+            # Backing up the output type temporary to binary
+            swSTLBinaryFormatBackup = options["app_instance"].GetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat)
+            
+            # # Setting everything up
+            # Export for assemblies
+            if options["foreignFormat"].upper() == self._extension_assembly:
+                # Setting up swSTLComponentsIntoOneFile
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, self._convert_assembly_into_once)
 
-            swExportSTLQualityBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality)
-            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality, SolidWorksEnums.swSTLQuality_e.swSTLQuality_Fine)
+            # Setting  quality
+            # -1 := Custom (not supported yet!)
+            #  0 := Coarse (as defined by SolidWorks)
+            # 10 := Fine (as defined by SolidWorks)
+
+            quality = self._ui.quality
+            if quality is None:
+                quality = 10 # Fine profile as default!
+            if isinstance(quality, str):
+                quality = eval(quality)
+            if isinstance(quality, float):
+                quality = int(quality)
+
+            if quality in range(0, 10) or quality < 0:
+                Logger.log("i", "Using SolidWorks' coarse quality!")
+                # Give actual value for quality
+                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
+                                                                      SolidWorksEnums.swSTLQuality_e.swSTLQuality_Coarse)
+            elif quality in range(10, 20):
+                Logger.log("i", "Using SolidWorks' fine quality!")
+                # Give actual value for quality
+                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
+                                                                      SolidWorksEnums.swSTLQuality_e.swSTLQuality_Fine)
+            else:
+                Logger.log("e", "Invalid value for quality: {}".format(quality))
 
             # Changing the default unit for STLs to mm, which is expected by Cura
-            swExportStlUnitsBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits)
             options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits, SolidWorksEnums.swLengthUnit_e.swMM)
 
             # Changing the output type temporary to binary
-            swSTLBinaryFormatBackup = options["app_instance"].GetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat)
             options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat, True)
 
         options["sw_model"].SaveAs(options["tempFile"])
@@ -417,8 +438,9 @@ class SolidWorksReader(CommonCOMReader):
             # Restoring swExportStlUnits
             options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits, swExportStlUnitsBackup)
 
-            # Restoring swSTLQuality_Fine
-            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality, swExportSTLQualityBackup)
+            # Restoring swSTL*
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
+                                                                  swExportSTLQualityBackup)
 
             if options["foreignFormat"].upper() == self._extension_assembly:
                 # Restoring swSTLComponentsIntoOneFile
