@@ -17,14 +17,14 @@ UM.Dialog
     height: 100 * Screen.devicePixelRatio;
     minimumHeight: 100 * Screen.devicePixelRatio;
 
-    title: catalog.i18nc("@title:window", "Import SolidWorks File as STL...")
+    title: catalog.i18nc("@title:window", "SolidWorks: Export wizard")
 
     onVisibilityChanged:
     {
         if (visible)
         {
-            qualityDropdown.currentIndex = 1;
-            rememberChoiceCheckBox.checked = UM.Preferences.getValue("cura_solidworks/choice_on_exporting_stl_quality") != "always_ask";
+            qualityDropdown.currentIndex = 0;
+            rememberChoiceCheckBox.checked = UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
         }
     }
 
@@ -40,7 +40,7 @@ UM.Dialog
         UM.TooltipArea {
             Layout.fillWidth:true
             height: childrenRect.height
-            text: catalog.i18nc("@info:tooltip", "Quality of the Exported STL")
+            text: catalog.i18nc("@info:tooltip", "Export settings")
             Row {
                 width: parent.width
 
@@ -59,8 +59,8 @@ UM.Dialog
 
                         Component.onCompleted:
                         {
-                            append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse"), code: "coarse" });
-                            append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine"), code: "fine" });
+                            append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine (SolidWorks)"), code: 10 });
+                            append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse (SolidWorks)"), code: 0 });
                         }
                     }
                     currentIndex: 1
@@ -76,7 +76,7 @@ UM.Dialog
             {
                 id: rememberChoiceCheckBox
                 text: catalog.i18nc("@text:window", "Remember my choice")
-                checked: UM.Preferences.getValue("cura_solidworks/choice_on_exporting_stl_quality") != "always_ask"
+                checked: UM.Preferences.getValue("cura_solidworks/show_export_settings_always")
             }
         }
     }
@@ -85,7 +85,7 @@ UM.Dialog
         Button
         {
             id: ok_button
-            text: catalog.i18nc("@action:button", "OK")
+            text: catalog.i18nc("@action:button", "Continue")
             onClicked:
             {
                 manager.setQuality(qualityModel.get(qualityDropdown.currentIndex).code, rememberChoiceCheckBox.checked);
@@ -96,7 +96,7 @@ UM.Dialog
         Button
         {
             id: cancel_button
-            text: catalog.i18nc("@action:button", "Cancel")
+            text: catalog.i18nc("@action:button", "Abort")
             onClicked:
             {
                 manager.onCancelButtonClicked();

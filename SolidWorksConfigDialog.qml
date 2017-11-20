@@ -17,13 +17,14 @@ UM.Dialog
     height: 100 * Screen.devicePixelRatio
     minimumHeight: 100 * Screen.devicePixelRatio
 
-    title: catalog.i18nc("@title:window", "SolidWorks Plugin - Configuration")
+    title: catalog.i18nc("@title:window", "SolidWorks plugin: Configuration")
 
     onVisibilityChanged:
     {
         if (visible)
         {
             choiceDropdown.updateCurrentIndex();
+            rememberChoiceCheckBox.checked = UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
         }
     }
 
@@ -58,8 +59,8 @@ UM.Dialog
 
                 function updateCurrentIndex()
                 {
-                    var index = 0;
-                    var currentChoice = UM.Preferences.getValue("cura_solidworks/choice_on_exporting_stl_quality");
+                    var index = 10;
+                    var currentChoice = UM.Preferences.getValue("cura_solidworks/export_quality");
                     for (var i = 0; i < model.count; ++i)
                     {
                         if (model.get(i).code == currentChoice)
@@ -77,11 +78,20 @@ UM.Dialog
 
                     Component.onCompleted:
                     {
-                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Always ask"), code: "always_ask" });
-                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine quality"), code: "always_use_fine" });
-                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse quality"), code: "always_use_coarse" });
+                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine (SolidWorks)"), code: 10 });
+                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse (SolidWorks)"), code: 0 });
                     }
                 }
+            }
+        }
+        Row
+        {
+            width: parent.width
+            CheckBox
+            {
+                id: rememberChoiceCheckBox
+                text: catalog.i18nc("@text:window", "Remember my choice");
+                checked: UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
             }
         }
     }
@@ -90,11 +100,11 @@ UM.Dialog
         Button
         {
             id: ok_button
-            text: catalog.i18nc("@action:button", "OK")
+            text: catalog.i18nc("@action:button", "Save")
             onClicked:
             {
-                UM.Preferences.setValue("cura_solidworks/choice_on_exporting_stl_quality",
-                    choiceModel.get(choiceDropdown.currentIndex).code);
+                UM.Preferences.setValue("cura_solidworks/export_quality", choiceModel.get(choiceDropdown.currentIndex).code);
+                UM.Preferences.setValue("cura_solidworks/show_export_settings_always", rememberChoiceCheckBox.checked);
                 close();
             }
             enabled: true
