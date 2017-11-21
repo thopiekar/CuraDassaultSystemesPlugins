@@ -37,20 +37,22 @@ UM.Dialog
         rowSpacing: 4
         columns: 1
 
-        UM.TooltipArea {
-            Layout.fillWidth:true
-            height: childrenRect.height
-            text: catalog.i18nc("@info:tooltip", "Export settings")
-            Row {
-                width: parent.width
+        Row {
+            width: parent.width
 
-                Label {
-                    text: catalog.i18nc("@action:label", "Quality")
-                    width: 100
-                    anchors.verticalCenter: parent.verticalCenter
-                }
+            Label {
+                text: catalog.i18nc("@action:label", "Quality:")
+                width: 100
+                anchors.verticalCenter: parent.verticalCenter
+            }
 
-                ComboBox
+            ComboBox
+            {
+                id: qualityDropdown
+                
+                currentIndex: updateCurrentIndex()
+                width: 175
+                
                 {
                     id: qualityDropdown
                     model: ListModel
@@ -64,6 +66,19 @@ UM.Dialog
                         }
                     }
                     currentIndex: 1
+                }
+                
+                model: ListModel
+                {
+                    id: qualityModel
+
+                    Component.onCompleted:
+                    {
+                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine (3D-printing)"), code: 30 });
+                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse (3D-printing)"), code: 20 });
+                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine (SolidWorks)"), code: 10 });
+                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse (SolidWorks)"), code: 0 });
+                    }
                 }
             }
         }
