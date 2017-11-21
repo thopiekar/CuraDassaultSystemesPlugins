@@ -121,6 +121,9 @@ class SolidWorksReader(CommonCOMReader):
         self.startApp(options)
         revision = self.updateRevisionNumber(options)
         self.closeApp(options)
+        if not options["app_was_active"] and not self.getOpenDocuments(options):
+            Logger.log("d", "Looks like we opened SolidWorks and there are no open files. Let's close SolidWorks again!")
+            options["app_instance"].ExitApp()
         self.postCloseApp(options)
         
         if revision[0] == version:
