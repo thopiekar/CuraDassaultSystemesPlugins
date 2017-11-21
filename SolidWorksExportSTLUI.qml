@@ -11,11 +11,11 @@ import Cura 1.0 as Cura
 
 UM.Dialog
 {
-    width: 300 * Screen.devicePixelRatio;
-    minimumWidth: 300 * Screen.devicePixelRatio;
+    width: screenScaleFactor * 300;
+    minimumWidth: width;
 
-    height: 100 * Screen.devicePixelRatio;
-    minimumHeight: 100 * Screen.devicePixelRatio;
+    height: screenScaleFactor * 100;
+    minimumHeight: height;
 
     title: catalog.i18nc("@title:window", "SolidWorks: Export wizard")
 
@@ -33,8 +33,8 @@ UM.Dialog
         UM.I18nCatalog{id: catalog; name: "SolidWorksPlugin"}
         anchors.fill: parent;
         Layout.fillWidth: true
-        columnSpacing: 16
-        rowSpacing: 4
+        columnSpacing: 16 * screenScaleFactor
+        rowSpacing: 4 * screenScaleFactor
         columns: 1
 
         Row {
@@ -42,7 +42,7 @@ UM.Dialog
 
             Label {
                 text: catalog.i18nc("@action:label", "Quality:")
-                width: 100
+                width: 100 * screenScaleFactor
                 anchors.verticalCenter: parent.verticalCenter
             }
 
@@ -51,7 +51,7 @@ UM.Dialog
                 id: qualityDropdown
 
                 currentIndex: updateCurrentIndex()
-                width: 175
+                width: 175 * screenScaleFactor
 
                 function updateCurrentIndex()
                 {

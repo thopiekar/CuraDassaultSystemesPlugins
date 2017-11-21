@@ -5,16 +5,16 @@ import QtQuick.Controls 1.1
 import QtQuick.Layouts 1.1
 import QtQuick.Window 2.1
 
-import UM 1.2 as UM
-import Cura 1.0 as Cura
+import UM 1.1 as UM
 
 UM.Dialog
 {
-    width: 350 * Screen.devicePixelRatio
-    minimumWidth: 350 * Screen.devicePixelRatio
+    
+    width: Math.floor(screenScaleFactor * 350);
+    minimumWidth: width;
 
-    height: 130 * Screen.devicePixelRatio
-    minimumHeight: 130 * Screen.devicePixelRatio
+    height: Math.floor(screenScaleFactor * 130);
+    minimumHeight: height;
 
     title: catalog.i18nc("@title:window", "SolidWorks plugin: Configuration")
 
@@ -33,8 +33,8 @@ UM.Dialog
         UM.I18nCatalog{id: catalog; name: "SolidWorksPlugin"}
         anchors.fill: parent
         Layout.fillWidth: true
-        columnSpacing: 16
-        rowSpacing: 10
+        columnSpacing: 16 * screenScaleFactor
+        rowSpacing: 10 * screenScaleFactor
         columns: 1
 
         Row
@@ -43,7 +43,7 @@ UM.Dialog
 
                 Label {
                     text: catalog.i18nc("@action:label", "Quality:")
-                    width: 100
+                    width: 100 * screenScaleFactor
                     anchors.verticalCenter: parent.verticalCenter
                 }
 
@@ -52,7 +52,7 @@ UM.Dialog
                 id: choiceDropdown
 
                 currentIndex: updateCurrentIndex()
-                width: 225
+                width: 225 * screenScaleFactor
 
                 function updateCurrentIndex()
                 {
