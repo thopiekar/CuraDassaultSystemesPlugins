@@ -132,6 +132,13 @@ class SolidWorksReader(CommonCOMReader):
 
         self._ui = SolidWorksReaderUI()
 
+        self.quality_classes = {
+                                30 : "Fine (3D-printing)",
+                                20 : "Coarse (3D-printing)",
+                                10 : "Fine (SolidWorks)",
+                                 0 : "Coarse (SolidWorks)",
+                                }
+
         self.root_component = None
 
 
@@ -190,6 +197,13 @@ class SolidWorksReader(CommonCOMReader):
 
     def preStartApp(self, options):
         options["app_export_quality"] = Preferences.getInstance().getValue("cura_solidworks/export_quality")
+        if options["app_export_quality"] is None:
+            options["app_export_quality"] = 10 # Fine profile as default!
+        if isinstance(options["app_export_quality"], str):
+            options["app_export_quality"] = eval(options["app_export_quality"])
+        if isinstance(options["app_export_quality"], float):
+            options["app_export_quality"] = int(options["app_export_quality"])
+
         options["app_auto_rotate"] = Preferences.getInstance().getValue("cura_solidworks/auto_rotate")
 
     def startApp(self, options):
@@ -382,7 +396,7 @@ class SolidWorksReader(CommonCOMReader):
 
         return options
 
-    def exportFileAs(self, options):
+    def exportFileAs(self, options, quality_enum = None):
         if options["tempType"] == "stl":
             # # Backing up everything
             if options["foreignFormat"].upper() == self._extension_assembly:
@@ -407,25 +421,18 @@ class SolidWorksReader(CommonCOMReader):
             #  0 := Coarse (as defined by SolidWorks)
             # 10 := Fine (as defined by SolidWorks)
 
-            if options["app_export_quality"] is None:
-                options["app_export_quality"] = 10 # Fine profile as default!
-            if isinstance(options["app_export_quality"], str):
-                options["app_export_quality"] = eval(options["app_export_quality"])
-            if isinstance(options["app_export_quality"], float):
-                options["app_export_quality"] = int(options["app_export_quality"])
-
-            if options["app_export_quality"] in range(0, 10) or options["app_export_quality"] < 0:
+            if quality_enum in range(0, 10) or quality_enum < 0:
                 Logger.log("i", "Using SolidWorks' coarse quality!")
                 # Give actual value for quality
                 options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
                                                                       SolidWorksEnums.swSTLQuality_e.swSTLQuality_Coarse)
-            elif options["app_export_quality"] in range(10, 20):
+            elif quality_enum in range(10, 20):
                 Logger.log("i", "Using SolidWorks' fine quality!")
                 # Give actual value for quality
                 options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
                                                                       SolidWorksEnums.swSTLQuality_e.swSTLQuality_Fine)
             else:
-                Logger.log("e", "Invalid value for quality: {}".format(options["app_export_quality"]))
+                Logger.log("e", "Invalid value for quality: {}".format(quality_enum))
 
             # Changing the default unit for STLs to mm, which is expected by Cura
             options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits, SolidWorksEnums.swLengthUnit_e.swMM)
@@ -466,7 +473,7 @@ class SolidWorksReader(CommonCOMReader):
     #def areReadersAvailable(self):
     #    return bool(self._reader_for_file_format)
 
-    def nodePostProcessing(self, nodes):
+    def nodePostProcessing(self, options, nodes):
         # # Auto-rotation
         if options["app_auto_rotate"]:
             # TODO: Investigate how the status is on SolidWorks 2018 (now beta)
