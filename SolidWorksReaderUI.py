@@ -51,7 +51,6 @@ class SolidWorksReaderUI(QObject):
         preference = Preferences.getInstance().getValue("cura_solidworks/show_export_settings_always")
         Logger.log("d", "Showing wizard {} needed.. (preference = {})".format(["is", "is not"][preference], repr(preference)))
         if preference:
-            #self.quality = Preferences.getInstance().getValue("cura_solidworks/export_quality")
             self._ui_lock.release()
             return
         self._cancelled = False
@@ -60,16 +59,6 @@ class SolidWorksReaderUI(QObject):
         if blocking:
             Logger.log("d", "Waitiung for UI to close..")
             self.waitForUIToClose()
-
-    @property
-    def quality(self):
-        return Preferences.getInstance().getValue("cura_solidworks/export_quality")
-
-    @pyqtSlot(str, bool)
-    def setQuality(self, quality, remember_my_choice):
-        #self.quality = quality
-        Preferences.getInstance().setValue("cura_solidworks/show_export_settings_always", remember_my_choice)
-        Preferences.getInstance().setValue("cura_solidworks/export_quality", quality)
 
     def _onShowConfigUI(self):
         if self._ui_view is None:
