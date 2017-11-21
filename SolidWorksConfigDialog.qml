@@ -56,7 +56,7 @@ UM.Dialog
 
                 function updateCurrentIndex()
                 {
-                    var index = 10;
+                    var index = 0; // Top element in the list below by default
                     var currentChoice = UM.Preferences.getValue("cura_solidworks/export_quality");
                     for (var i = 0; i < model.count; ++i)
                     {
