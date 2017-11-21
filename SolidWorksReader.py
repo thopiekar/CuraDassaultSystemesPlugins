@@ -209,6 +209,10 @@ class SolidWorksReader(CommonCOMReader):
     def startApp(self, options):
         options = super().startApp(options)
 
+        # Tell SolidWorks we operating in the background
+        options["app_operate_in_background"] = options["app_instance"].CommandInProgress # SolidWorks API: 2006 SP2 (Rev 14.2)
+        options["app_instance"].CommandInProgress = True
+
         # Allow SolidWorks to run in the background and be invisible
         options["app_instance_user_control"] = options["app_instance"].UserControl
         options["app_instance"].UserControl = False
@@ -268,6 +272,8 @@ class SolidWorksReader(CommonCOMReader):
                 options["app_instance"].Visible = options["app_instance_visible"]
             if "app_instance_user_control" in options.keys():
                 options["app_instance"].UserControl = options["app_instance_user_control"]
+            if "app_operate_in_background" in options.keys():
+                options["app_instance"].CommandInProgress = options["app_operate_in_background"]
 
     def walkComponentsInAssembly(self, root = None):
         if root is None:
