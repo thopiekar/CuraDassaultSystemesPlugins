@@ -17,7 +17,7 @@ from UM.Math.Vector import Vector # @UnresolvedImport
 from UM.Math.Quaternion import Quaternion # @UnresolvedImport
 from UM.Mesh.MeshReader import MeshReader # @UnresolvedImport
 from UM.PluginRegistry import PluginRegistry # @UnresolvedImport
-from UM.Preferences import Preferences
+from UM.Preferences import Preferences # @UnresolvedImport
 
 # Our plugin
 from .CadIntegrationUtils.CommonComReader import CommonCOMReader # @UnresolvedImport
