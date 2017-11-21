@@ -1,6 +1,5 @@
 # Copyright (c) 2017 Ultimaker B.V.
 # Copyright (c) 2017 Thomas Karl Pietrowski
-# Cura is released under the terms of the AGPLv3 or higher.
 
 import os
 import threading
