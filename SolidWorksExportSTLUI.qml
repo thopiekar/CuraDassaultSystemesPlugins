@@ -23,7 +23,7 @@ UM.Dialog
     {
         if (visible)
         {
-            qualityDropdown.currentIndex = 0;
+            qualityDropdown.updateCurrentIndex();
             rememberChoiceCheckBox.checked = UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
         }
     }
@@ -53,19 +53,19 @@ UM.Dialog
                 currentIndex: updateCurrentIndex()
                 width: 175
                 
+                function updateCurrentIndex()
                 {
-                    id: qualityDropdown
-                    model: ListModel
+                    var index = 10;
+                    var currentQuality = UM.Preferences.getValue("cura_solidworks/export_quality");
+                    for (var i = 0; i < model.count; ++i)
                     {
-                        id: qualityModel
-
-                        Component.onCompleted:
+                        if (model.get(i).code == currentQuality)
                         {
-                            append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine (SolidWorks)"), code: 10 });
-                            append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse (SolidWorks)"), code: 0 });
+                            index = i;
+                            break;
                         }
                     }
-                    currentIndex: 1
+                    currentIndex = index;
                 }
                 
                 model: ListModel
