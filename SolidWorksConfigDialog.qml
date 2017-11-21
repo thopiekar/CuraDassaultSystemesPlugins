@@ -11,11 +11,11 @@ import Cura 1.0 as Cura
 
 UM.Dialog
 {
-    width: 300 * Screen.devicePixelRatio
-    minimumWidth: 300 * Screen.devicePixelRatio
+    width: 350 * Screen.devicePixelRatio
+    minimumWidth: 350 * Screen.devicePixelRatio
 
-    height: 100 * Screen.devicePixelRatio
-    minimumHeight: 100 * Screen.devicePixelRatio
+    height: 130 * Screen.devicePixelRatio
+    minimumHeight: 130 * Screen.devicePixelRatio
 
     title: catalog.i18nc("@title:window", "SolidWorks plugin: Configuration")
 
@@ -25,6 +25,7 @@ UM.Dialog
         {
             choiceDropdown.updateCurrentIndex();
             rememberChoiceCheckBox.checked = UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
+            autoRotateCheckBox.checked = UM.Preferences.getValue("cura_solidworks/auto_rotate");
         }
     }
 
@@ -91,6 +92,16 @@ UM.Dialog
                 checked: UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
             }
         }
+        Row
+        {
+            width: parent.width
+            CheckBox
+            {
+                id: autoRotateCheckBox
+                text: catalog.i18nc("@text:window", "Automatically rotate opened file into normed orientation");
+                checked: UM.Preferences.getValue("cura_solidworks/auto_rotate");
+            }
+        }
     }
 
     rightButtons: [
@@ -102,6 +113,7 @@ UM.Dialog
             {
                 UM.Preferences.setValue("cura_solidworks/export_quality", choiceModel.get(choiceDropdown.currentIndex).code);
                 UM.Preferences.setValue("cura_solidworks/show_export_settings_always", rememberChoiceCheckBox.checked);
+                UM.Preferences.setValue("cura_solidworks/auto_rotate", autoRotateCheckBox.checked);
                 close();
             }
             enabled: true

@@ -28,6 +28,7 @@ class SolidWorksReaderUI(QObject):
 
         Preferences.getInstance().addPreference("cura_solidworks/export_quality", 0)
         Preferences.getInstance().addPreference("cura_solidworks/show_export_settings_always", True)
+        Preferences.getInstance().addPreference("cura_solidworks/auto_rotate", True)
 
         self._cancelled = False
         self._ui_view = None
