@@ -190,6 +190,7 @@ class SolidWorksReader(CommonCOMReader):
 
     def preStartApp(self, options):
         options["app_export_quality"] = Preferences.getInstance().getValue("cura_solidworks/export_quality")
+        options["app_auto_rotate"] = Preferences.getInstance().getValue("cura_solidworks/auto_rotate")
 
     def startApp(self, options):
         options = super().startApp(options)
@@ -467,7 +468,7 @@ class SolidWorksReader(CommonCOMReader):
 
     def nodePostProcessing(self, nodes):
         # # Auto-rotation
-        if Preferences.getInstance().getValue("cura_solidworks/auto_rotate"):
+        if options["app_auto_rotate"]:
             # TODO: Investigate how the status is on SolidWorks 2018 (now beta)
             if self._revision_major >= 24: # Known problem under SolidWorks 2016 until 2017: Exported models are rotated by -90 degrees. This rotates them back!
                 rotation = Quaternion.fromAngleAxis(math.radians(90), Vector.Unit_X)
