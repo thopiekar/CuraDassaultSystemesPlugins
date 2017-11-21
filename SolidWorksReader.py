@@ -31,89 +31,6 @@ import numpy
 
 i18n_catalog = i18nCatalog("SolidWorksPlugin")
 
-def is_sldwks_service(major_version):
-    sldwks_app_name =  "SldWorks.Application.{}".format(major_version)
-    try:
-        # Could find a better key to detect whether SolidWorks is installed..
-        winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, sldwks_app_name, 0, winreg.KEY_READ)
-        return True
-    except:
-        return False
-
-def get_software_install_path(major_version):
-    regpath = "SldWorks.Application.{}\shell\open\command".format(major_version)
-    sldwks_exe = winreg.QueryValue(winreg.HKEY_CLASSES_ROOT, regpath)
-    sldwks_exe = sldwks_exe.split()[0]
-    sldwks_exe = convertDosPathIntoLongPath(sldwks_exe)
-    sldwkd_inst = os.path.split(sldwks_exe)[0]
-    return sldwkd_inst
-
-def is_software_revision(major_version):
-    # The function is running in the main thraed. No Co-/UnCoInit needed..
-    try:
-        ComConnector.CoInit()
-        has_coinited = True
-    except:
-        has_coinited = False
-    
-    service_name = "SldWorks.Application.{}".format(major_version)
-    try:
-        app_instance = ComConnector.CreateActiveObject(service_name)
-        app_was_active = True
-    except:
-        app_instance = ComConnector.CreateClassObject(service_name)
-        app_was_active = False
-    
-    revision_number = app_instance.RevisionNumber
-    if not app_was_active:
-        app_instance.ExitApp()
-    
-    del(app_instance)
-    if has_coinited:
-        ComConnector.UnCoInit()
-    if isinstance(revision_number, str):
-        revision_splitted = [int(x) for x in revision_number.split(".")]
-        if revision_splitted[0] == major_version:
-            return True
-        else:
-            Logger.log("e", "Revision does not fit to {}.x.y: {}".format(major_version, revision_number))
-    else:
-        Logger.log("e", "Wrong datatype: {}".format(repr(revision_number)))
-    return False
-    
-def is_software_install_path(major_version):
-    # Also check whether the executable can be found..
-    # Why? - SolidWorks 2017 lefts an key after uninstallation, which points to an orphaned path.
-    try:
-        get_software_install_path(major_version)
-        return True
-    except:
-        return False
-
-def is_sldwks_installed(major_version):
-    sldwks_name = SolidWorkVersions.major_version_name[major_version]
-    if not is_sldwks_service(major_version):
-        Logger.log("w", "Found no COM service for '{}'! Ignoring..".format(sldwks_name))
-        return False
-    if not is_software_install_path(major_version):
-        Logger.log("w", "Found no executable for '{}'! Ignoring..".format(sldwks_name))
-        return False
-    if not is_software_revision(major_version):
-        Logger.log("w", "COM server can't confirm the major version for '{}'. This is a rotten installation! Ignoring..".format(sldwks_name))
-        return False
-    Logger.log("i", "Success! Installation of '{}' seems to be valid!".format(sldwks_name))
-    return True
-    
-def return_available_versions():
-    versions = []
-    for major_version in SolidWorkVersions.major_version_name.keys(): # If one of "SldWorks.Application.*" exists, we also have a "SldWorks.Application"
-        if is_sldwks_installed(major_version):
-            versions.append(major_version)
-    return versions
-
-def is_any_sldwks_installed():
-    return bool(return_available_versions())
-
 class SolidWorksReader(CommonCOMReader):
     def __init__(self):
         super().__init__("SolidWorks", "SldWorks.Application")
@@ -140,11 +57,104 @@ class SolidWorksReader(CommonCOMReader):
                                 }
 
         self.root_component = None
-
+        
+        # Check for operational installations
+        self.updateOperationalInstallations()
 
     @property
     def _app_names(self):
-        return ["SldWorks.Application.{}".format(major_version) for major_version in return_available_versions()] + super()._app_names
+        return [self.getVersionedServiceName(version) for version in self.operational_versions] + super()._app_names
+    
+    def getVersionedServiceName(self, version):
+        return "SldWorks.Application.{}".format(version)
+    
+    def getServicesFromRegistry(self):
+        versions = []
+        registered_services = winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, None)
+        key_prefix = "{}.".format(self._default_app_name)
+        i = 0
+        while True:
+            try:
+                key = winreg.EnumKey(registered_services, i)
+                if key.startswith(key_prefix):
+                    try:
+                        major_version = key[len(key_prefix):]
+                        major_version = int(major_version)
+                        versions.append(major_version)
+                    except ValueError:
+                        pass
+                i += 1
+            except WindowsError: 
+                break
+        return versions
+    
+    def isServiceRegistered(self, major_version):
+        sldwks_app_name = self.getVersionedServiceName(major_version)
+        try:
+            # Could find a better key to detect whether SolidWorks is installed..
+            winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, sldwks_app_name, 0, winreg.KEY_READ)
+            return True
+        except:
+            return False
+    
+    def getSoftwareInstallPath(self, major_version):
+        regpath = "{}\shell\open\command".format(self.getVersionedServiceName(major_version))
+        sldwks_exe = winreg.QueryValue(winreg.HKEY_CLASSES_ROOT, regpath)
+        sldwks_exe = sldwks_exe.split()[0]
+        sldwks_exe = convertDosPathIntoLongPath(sldwks_exe)
+        sldwkd_inst = os.path.split(sldwks_exe)[0]
+        return sldwkd_inst
+    
+    def isSoftwareInstallPath(self, major_version):
+        # Also check whether the executable can be found..
+        # Why? - SolidWorks 2017 lefts an key after uninstallation, which points to an orphaned path.
+        try:
+            self.getSoftwareInstallPath(major_version)
+            return True
+        except:
+            return False
+    
+    def isServiceStartingUp(self, version):
+        # Also shall confirm the correct major revision from the running instance
+        options = {"app_name": self.getVersionedServiceName(version), 
+                   }
+        self.startApp(options)
+        revision = self.updateRevisionNumber(options)
+        self.closeApp(options)
+        self.postCloseApp(options)
+        
+        if revision[0] == version:
+            return True
+        
+        Logger.log("e", "Revision does not fit to {}.x.y: {}".format(version, revision[0]))
+        return False
+    
+    def isVersionOperational(self, version):
+        # Full set of checks for a working installation
+        if not self.isServiceRegistered(version):
+            Logger.log("w", "Found no COM service for '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
+            return False
+        if not self.isSoftwareInstallPath(version):
+            Logger.log("w", "Found no executable for '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
+            return False
+        if not self.isServiceStartingUp(version):
+            Logger.log("w", "COM server can't confirm the major version for '{}'. This is a rotten installation! Ignoring..".format(self.getVersionedServiceName(version)))
+            return False
+        Logger.log("i", "Success! Installation of '{}' seems to be valid!".format(self.getVersionedServiceName(version)))
+        return True
+    
+    def updateOperationalInstallations(self):
+        versions = self.getServicesFromRegistry()
+        self.operational_versions = []
+        for version in versions:
+            if self.isVersionOperational(version):
+                self.operational_versions.append(version)
+    
+    def isOperational(self):
+        # Whenever there are versions, which work, we are good to go!
+        if self.operational_versions:
+            return True
+        return False
     
     @property
     def _reader_for_file_format(self):
@@ -206,6 +216,30 @@ class SolidWorksReader(CommonCOMReader):
 
         options["app_auto_rotate"] = Preferences.getInstance().getValue("cura_solidworks/auto_rotate")
 
+    def updateRevisionNumber(self, options):
+        # Getting revision after starting
+        revision_number = options["app_instance"].RevisionNumber
+        
+        # Sometimes it can happen that the revision number returned here is None
+        # TODO: Ask DessaultSystemes how it comes and how to get the value properly without any issues..
+        if isinstance(revision_number, str):
+            self._revision = [int(x) for x in revision_number.split(".")]
+            try:
+                self._revision_major = self._revision[0]
+                self._revision_minor = self._revision[1]
+                self._revision_patch = self._revision[2]
+                
+                
+            except IndexError:
+                Logger.logException("w", "Unable to parse revision number from SolidWorks.RevisionNumber. revision_number is: {revision_number}.".format(revision_number = self._revision))
+            except:
+                Logger.logException("c", "Unexpected error: revision_number = {revision_number}".format(revision_number = self._revision))
+    
+        else:
+            Logger.log("c", "revision_number has a wrong type: {}".format(type(revision_number)))
+        
+        return self._revision
+
     def startApp(self, options):
         options = super().startApp(options)
 
@@ -225,27 +259,14 @@ class SolidWorksReader(CommonCOMReader):
         options["app_frame"] = options["app_instance"].Frame
         options["app_frame_invisible"] = options["app_frame"].KeepInvisible
         options["app_frame"].KeepInvisible = True
-
-        # Getting revision after starting
-        revision_number = options["app_instance"].RevisionNumber
-    
-        # Sometimes it can happen that the revision number returned here is None
-        # TODO: Ask DessaultSystemes how it comes and how to get the value properly without any issues..
-        if isinstance(revision_number, str):
-            self._revision = [int(x) for x in revision_number.split(".")]
-            try:
-                self._revision_major = self._revision[0]
-                self._revision_minor = self._revision[1]
-                self._revision_patch = self._revision[2]
-                
-                Logger.log("d", "Started SolidWorks revision: %s", SolidWorkVersions.major_version_name[self._revision_major])
-            except IndexError:
-                Logger.logException("w", "Unable to parse revision number from SolidWorks.RevisionNumber. revision_number is: {revision_number}.".format(revision_number = self._revision))
-            except:
-                Logger.logException("c", "Unexpected error: revision_number = {revision_number}".format(revision_number = self._revision))
-    
+        
+        self.updateRevisionNumber(options)
+        
+        if self._revision_major in SolidWorkVersions.major_version_name.keys():
+            version_name = SolidWorkVersions.major_version_name[self._revision_major]
         else:
-            Logger.log("c", "revision_number has a wrong type: {}".format(type(revision_number)))
+            version_name = self.getVersionedServiceName(self._revision_major)
+        Logger.log("d", "Started SolidWorks revision: %s", version_name)
 
         return options
 
