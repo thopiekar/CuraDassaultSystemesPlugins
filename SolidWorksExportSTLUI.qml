@@ -12,9 +12,11 @@ UM.Dialog
 {
     width: screenScaleFactor * 300;
     minimumWidth: width;
+    maximumWidth: width;
 
     height: screenScaleFactor * 100;
     minimumHeight: height;
+    maximumHeight: height;
 
     title: catalog.i18nc("@title:window", "SolidWorks: Export wizard")
 
