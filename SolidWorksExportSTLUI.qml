@@ -103,7 +103,8 @@ UM.Dialog
             text: catalog.i18nc("@action:button", "Continue")
             onClicked:
             {
-                manager.setQuality(qualityModel.get(qualityDropdown.currentIndex).code, rememberChoiceCheckBox.checked);
+                UM.Preferences.setValue("cura_solidworks/export_quality", qualityModel.get(qualityDropdown.currentIndex).code);
+                UM.Preferences.setValue("cura_solidworks/show_export_settings_always", rememberChoiceCheckBox.checked);
                 manager.onOkButtonClicked();
             }
             enabled: true
