@@ -1,5 +1,4 @@
 # Copyright (c) 2017 Ultimaker B.V.
-# PluginBrowser is released under the terms of the AGPLv3 or higher.
 
 import os
 
@@ -25,12 +24,12 @@ class SolidWorksDialogHandler(QObject, Extension):
 
     def _openConfigDialog(self):
         if not self._config_dialog:
-            self._config_dialog = self._createDialog("SolidWorksConfigDialog.qml")
+            self._config_dialog = self._createDialog("SolidWorksConfiguration.qml")
         self._config_dialog.show()
 
     def _openTutorialDialog(self):
         if not self._tutorial_dialog:
-            self._tutorial_dialog = self._createDialog("SolidWorksMacroTutorialDialog.qml")
+            self._tutorial_dialog = self._createDialog("SolidWorksMacroTutorial.qml")
         self._tutorial_dialog.show()
 
     def _createDialog(self, dialog_qml):

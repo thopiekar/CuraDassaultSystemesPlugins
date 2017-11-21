@@ -37,8 +37,10 @@ class SolidWorksReader(CommonCOMReader):
 
         self._extension_part = ".SLDPRT"
         self._extension_assembly = ".SLDASM"
+        self._extension_drawing = ".SLDDRW"
         self._supported_extensions = [self._extension_part.lower(),
                                       self._extension_assembly.lower(),
+                                      self._extension_drawing.lower(),
                                       ]
 
         self._convert_assembly_into_once = True  # False is not implemented now!
@@ -362,6 +364,29 @@ class SolidWorksReader(CommonCOMReader):
                 return open_files[open_file_path].GetTitle
         return None
 
+    def getDocumentsInDrawing(self, options):
+        referenceModelNames = []
+        swView = options["sw_model"].GetFirstView
+        while not swView is None:
+            if swView.GetReferencedModelName not in referenceModelNames and swView.GetReferencedModelName != "":
+                referenceModelNames.append(swView.GetReferencedModelName)
+            swView = swView.GetNextView
+        return referenceModelNames
+    
+    def countDocumentsInDrawing(self, options):
+        return len(self.getDocumentsInDrawing(options))
+
+    def activatePreviousFile(self, options):
+        if "sw_previous_active_file" in options.keys():
+            if options["sw_previous_active_file"] and "GetTitle" in dir(options["sw_previous_active_file"]):
+                error = ComConnector.getByVarInt()
+                options["app_instance"].ActivateDoc3(options["sw_previous_active_file"].GetTitle,
+                                                     True,
+                                                     SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
+                                                     error
+                                                     )
+        return options
+
     def openForeignFile(self, options):
         open_file_paths = self.getOpenDocuments(options)
         
@@ -370,9 +395,11 @@ class SolidWorksReader(CommonCOMReader):
         if not os.path.normpath(options["foreignFile"]) in open_file_paths:
             Logger.log("d", "Opening the foreign file!")
             if options["foreignFormat"].upper() == self._extension_part:
-                filetype = SolidWorksEnums.FileTypes.SWpart
+                filetype = SolidWorksEnums.swDocumentTypes_e.swDocPART
             elif options["foreignFormat"].upper() == self._extension_assembly:
-                filetype = SolidWorksEnums.FileTypes.SWassembly
+                filetype = SolidWorksEnums.swDocumentTypes_e.swDocASSEMBLY
+            elif options["foreignFormat"].upper() == self._extension_drawing:
+                filetype = SolidWorksEnums.swDocumentTypes_e.swDocDRAWING
             else:
                 raise NotImplementedError("Unknown extension. Something went terribly wrong!")
     
@@ -408,11 +435,28 @@ class SolidWorksReader(CommonCOMReader):
             options["sw_model"] = self.getOpenDocumentFilepathDict(options)[os.path.normpath(options["foreignFile"])]
             options["sw_opened_file"] = False
 
-        options["sw_model_title"] = self.getDocumentTitleByFilepath(options, options["foreignFile"])
-        
+        if options["foreignFormat"].upper() == self._extension_drawing:
+            count_of_documents = self.countDocumentsInDrawing(options)
+            if count_of_documents == 0:
+                error_message = Message(i18n_catalog.i18nc("@info:status", "Found no models inside your drawing. Could you please check it's content again and make sure one part or assembly is inside?\n\n Thanks!." ))
+                error_message.setTitle("SolidWorks plugin")
+                error_message.show()
+            elif count_of_documents > 1:
+                error_message = Message(i18n_catalog.i18nc("@info:status", "Found more then one part or assembly inside your drawing. We currently only support drawings with exactly one part or assembly inside.\n\nSorry!" ))
+                error_message.setTitle("SolidWorks plugin")
+                error_message.show()
+            else:
+                options["sw_drawing"] = options["sw_model"]
+                options["sw_drawing_opened"] = options["sw_opened_file"]
+                options["foreignFile"] = self.getDocumentsInDrawing(options)[0]
+                options["foreignFormat"] = os.path.splitext(options["foreignFile"])[1]
+                self.activatePreviousFile(options)
+                
+                options = self.openForeignFile(options)
+
         error = ComConnector.getByVarInt()
         # SolidWorks API: >= 20.0.x
-        options["app_instance"].ActivateDoc3(options["sw_model_title"],
+        options["app_instance"].ActivateDoc3(options["sw_model"].GetTitle,
                                              True,
                                              SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
                                              error,
@@ -490,16 +534,14 @@ class SolidWorksReader(CommonCOMReader):
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, swSTLComponentsIntoOneFileBackup)
 
     def closeForeignFile(self, options):
-        if "app_instance" in options.keys() and "sw_model_title" in options.keys():
-            options["app_instance"].CloseDoc(options["sw_model_title"])
-        if "sw_previous_active_file" in options.keys():
-            if options["sw_previous_active_file"]:
-                error = ComConnector.getByVarInt()
-                options["app_instance"].ActivateDoc3(options["sw_previous_active_file"].GetTitle,
-                                                     True,
-                                                     SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
-                                                     error
-                                                     )
+        if "app_instance" in options.keys():
+            if "sw_opened_file" in options.keys():
+                if options["sw_opened_file"]:
+                    options["app_instance"].CloseDoc(options["sw_model"].GetTitle)
+            if "sw_drawing_opened" in options.keys():
+                if options["sw_drawing_opened"]:
+                    options["app_instance"].CloseDoc(options["sw_drawing"].GetTitle)
+            self.activatePreviousFile(options)
 
     ## TODO: A functionality like this needs to come back as soon as we have something like a dependency resolver for plugins.
     #def areReadersAvailable(self):

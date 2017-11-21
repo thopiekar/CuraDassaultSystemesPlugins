@@ -1,5 +1,4 @@
 // Copyright (c) 2017 Ultimaker B.V.
-// Cura is released under the terms of the AGPLv3 or higher.
 
 import QtQuick 2.1
 import QtQuick.Controls 1.1
@@ -11,11 +10,13 @@ import Cura 1.0 as Cura
 
 UM.Dialog
 {
-    width: 300 * Screen.devicePixelRatio;
-    minimumWidth: 300 * Screen.devicePixelRatio;
+    width: screenScaleFactor * 300;
+    minimumWidth: width;
+    maximumWidth: width;
 
-    height: 100 * Screen.devicePixelRatio;
-    minimumHeight: 100 * Screen.devicePixelRatio;
+    height: screenScaleFactor * 100;
+    minimumHeight: height;
+    maximumHeight: height;
 
     title: catalog.i18nc("@title:window", "SolidWorks: Export wizard")
 
@@ -24,7 +25,7 @@ UM.Dialog
         if (visible)
         {
             qualityDropdown.updateCurrentIndex();
-            rememberChoiceCheckBox.checked = UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
+            rememberChoiceCheckBox.checked = !UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
         }
     }
 
@@ -33,8 +34,8 @@ UM.Dialog
         UM.I18nCatalog{id: catalog; name: "SolidWorksPlugin"}
         anchors.fill: parent;
         Layout.fillWidth: true
-        columnSpacing: 16
-        rowSpacing: 4
+        columnSpacing: 16 * screenScaleFactor
+        rowSpacing: 4 * screenScaleFactor
         columns: 1
 
         Row {
@@ -42,7 +43,7 @@ UM.Dialog
 
             Label {
                 text: catalog.i18nc("@action:label", "Quality:")
-                width: 100
+                width: 100 * screenScaleFactor
                 anchors.verticalCenter: parent.verticalCenter
             }
 
@@ -51,7 +52,7 @@ UM.Dialog
                 id: qualityDropdown
 
                 currentIndex: updateCurrentIndex()
-                width: 175
+                width: 175 * screenScaleFactor
 
                 function updateCurrentIndex()
                 {
@@ -102,7 +103,7 @@ UM.Dialog
             onClicked:
             {
                 UM.Preferences.setValue("cura_solidworks/export_quality", qualityModel.get(qualityDropdown.currentIndex).code);
-                UM.Preferences.setValue("cura_solidworks/show_export_settings_always", rememberChoiceCheckBox.checked);
+                UM.Preferences.setValue("cura_solidworks/show_export_settings_always", !rememberChoiceCheckBox.checked);
                 manager.onOkButtonClicked();
             }
             enabled: true

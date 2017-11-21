@@ -1,6 +1,5 @@
 # Copyright (c) 2017 Ultimaker B.V.
 # Copyright (c) 2017 Thomas Karl Pietrowski
-# Cura is released under the terms of the AGPLv3 or higher.
 
 import os
 import threading
@@ -66,7 +65,7 @@ class SolidWorksReaderUI(QObject):
         self._ui_view.show()
 
     def _createConfigUI(self):
-        path = QUrl.fromLocalFile(os.path.join(os.path.split(__file__)[0], "SolidWorksExportSTLUI.qml"))
+        path = QUrl.fromLocalFile(os.path.join(os.path.split(__file__)[0], "SolidWorksWizard.qml"))
         component = QQmlComponent(Application.getInstance()._engine, path)
         self._ui_context = QQmlContext(Application.getInstance()._engine.rootContext())
         self._ui_context.setContextProperty("manager", self)
