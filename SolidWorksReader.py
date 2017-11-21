@@ -188,6 +188,9 @@ class SolidWorksReader(CommonCOMReader):
     def getAppVisible(self, state, options):
         return options["app_instance"].Visible
 
+    def preStartApp(self, options):
+        options["app_export_quality"] = Preferences.getInstance().getValue("cura_solidworks/export_quality")
+
     def startApp(self, options):
         options = super().startApp(options)
 
@@ -403,26 +406,25 @@ class SolidWorksReader(CommonCOMReader):
             #  0 := Coarse (as defined by SolidWorks)
             # 10 := Fine (as defined by SolidWorks)
 
-            quality = self._ui.quality
-            if quality is None:
-                quality = 10 # Fine profile as default!
-            if isinstance(quality, str):
-                quality = eval(quality)
-            if isinstance(quality, float):
-                quality = int(quality)
+            if options["app_export_quality"] is None:
+                options["app_export_quality"] = 10 # Fine profile as default!
+            if isinstance(options["app_export_quality"], str):
+                options["app_export_quality"] = eval(options["app_export_quality"])
+            if isinstance(options["app_export_quality"], float):
+                options["app_export_quality"] = int(options["app_export_quality"])
 
-            if quality in range(0, 10) or quality < 0:
+            if options["app_export_quality"] in range(0, 10) or options["app_export_quality"] < 0:
                 Logger.log("i", "Using SolidWorks' coarse quality!")
                 # Give actual value for quality
                 options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
                                                                       SolidWorksEnums.swSTLQuality_e.swSTLQuality_Coarse)
-            elif quality in range(10, 20):
+            elif options["app_export_quality"] in range(10, 20):
                 Logger.log("i", "Using SolidWorks' fine quality!")
                 # Give actual value for quality
                 options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
                                                                       SolidWorksEnums.swSTLQuality_e.swSTLQuality_Fine)
             else:
-                Logger.log("e", "Invalid value for quality: {}".format(quality))
+                Logger.log("e", "Invalid value for quality: {}".format(options["app_export_quality"]))
 
             # Changing the default unit for STLs to mm, which is expected by Cura
             options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits, SolidWorksEnums.swLengthUnit_e.swMM)
