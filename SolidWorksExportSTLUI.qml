@@ -49,10 +49,10 @@ UM.Dialog
             ComboBox
             {
                 id: qualityDropdown
-
+                
                 currentIndex: updateCurrentIndex()
                 width: 175
-
+                
                 function updateCurrentIndex()
                 {
                     var index = 10;
@@ -67,13 +67,15 @@ UM.Dialog
                     }
                     currentIndex = index;
                 }
-
+                
                 model: ListModel
                 {
                     id: qualityModel
 
                     Component.onCompleted:
                     {
+                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine (3D-printing)"), code: 30 });
+                        append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse (3D-printing)"), code: 20 });
                         append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine (SolidWorks)"), code: 10 });
                         append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse (SolidWorks)"), code: 0 });
                     }
