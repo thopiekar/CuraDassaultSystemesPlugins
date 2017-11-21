@@ -228,8 +228,6 @@ class SolidWorksReader(CommonCOMReader):
                 self._revision_major = self._revision[0]
                 self._revision_minor = self._revision[1]
                 self._revision_patch = self._revision[2]
-                
-                
             except IndexError:
                 Logger.logException("w", "Unable to parse revision number from SolidWorks.RevisionNumber. revision_number is: {revision_number}.".format(revision_number = self._revision))
             except:
@@ -266,7 +264,7 @@ class SolidWorksReader(CommonCOMReader):
             version_name = SolidWorkVersions.major_version_name[self._revision_major]
         else:
             version_name = self.getVersionedServiceName(self._revision_major)
-        Logger.log("d", "Started SolidWorks revision: %s", version_name)
+        Logger.log("d", "Started: %s", version_name)
 
         return options
 
@@ -283,18 +281,21 @@ class SolidWorksReader(CommonCOMReader):
     def closeApp(self, options):
         if "app_frame" in options.keys():
             # Normally, we want to do that, but this confuses SolidWorks more than needed, it seems.
+            Logger.log("d", "Rolling back changes on app_frame.")
             if "app_frame_invisible" in options.keys():
                 options["app_frame"].KeepInvisible = options["app_frame_invisible"]
             
         if "app_instance" in options.keys():
             # Same here. By logic I would assume that we need to undo it, but when processing multiple parts, SolidWorks gets confused again..
             # Or there is another sense..
+            Logger.log("d", "Rolling back changes on app_instance.")
             if "app_instance_visible" in options.keys():
                 options["app_instance"].Visible = options["app_instance_visible"]
             if "app_instance_user_control" in options.keys():
                 options["app_instance"].UserControl = options["app_instance_user_control"]
             if "app_operate_in_background" in options.keys():
                 options["app_instance"].CommandInProgress = options["app_operate_in_background"]
+        Logger.log("d", "Closed SolidWorks.")
 
     def walkComponentsInAssembly(self, root = None):
         if root is None:
