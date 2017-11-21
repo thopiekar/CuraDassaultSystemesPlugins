@@ -396,6 +396,7 @@ class SolidWorksReader(CommonCOMReader):
             if documentSpecification.Error:
                 Logger.log("e", "Errors happened while opening your SolidWorks file!")
                 error_message = Message(i18n_catalog.i18nc("@info:status", "SolidWorks reported errors, while opening your file. We recommend to solve these issues inside SolidWorks itself." ))
+                error_message.setTitle("SolidWorks plugin")
                 error_message.show()
             options["sw_opened_file"] = True
         else:
