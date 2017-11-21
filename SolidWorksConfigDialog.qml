@@ -41,15 +41,12 @@ UM.Dialog
         {
             width: parent.width
 
-            Label {
-                text: catalog.i18nc("@action:label", "Default conversion quality:")
-                width: 150
-                anchors.verticalCenter: parent.verticalCenter
-            }
-        }
+                Label {
+                    text: catalog.i18nc("@action:label", "Quality:")
+                    width: 100
+                    anchors.verticalCenter: parent.verticalCenter
+                }
 
-        Row
-        {
             ComboBox
             {
                 id: choiceDropdown
