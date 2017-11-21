@@ -90,7 +90,7 @@ UM.Dialog
             CheckBox
             {
                 id: rememberChoiceCheckBox
-                text: catalog.i18nc("@text:window", "Remember my choice")
+                text: catalog.i18nc("@text:window", "Show this dialog again")
                 checked: UM.Preferences.getValue("cura_solidworks/show_export_settings_always")
             }
         }
