@@ -209,35 +209,28 @@ class SolidWorksReader(CommonCOMReader):
             return True
         return False
     
-    @property
-    def _reader_for_file_format(self):
-        _reader_for_file_format = {}
+    def _onAfterPluginsLoaded(self):
+        self._reader_for_file_format = {}
 
         # Trying 3MF first because it describes the model much better..
         # However, this is untested since this plugin was only tested with STL support
         if PluginRegistry.getInstance().isActivePlugin("3MFReader"):
-            _reader_for_file_format["3mf"] = PluginRegistry.getInstance().getPluginObject("3MFReader")
+            self._reader_for_file_format["3mf"] = PluginRegistry.getInstance().getPluginObject("3MFReader")
+        else:
+            Logger.log("w", "Could not find 3MFReader!")
 
-        if PluginRegistry.getInstance().isActivePlugin("STLReader"):
-            _reader_for_file_format["stl"] = PluginRegistry.getInstance().getPluginObject("STLReader")
+        super()._onAfterPluginsLoaded(clean_current_dict = False)
 
-        if not len(_reader_for_file_format):
-            Logger.log("d", "Could not find any reader for (probably) supported file formats!")
+        return None
 
-        return _reader_for_file_format
-    
     @property
     def _file_formats_first_choice(self):
         _file_formats_first_choice = [] # Ordered list of preferred formats
-
-        # Trying 3MF first because it describes the model much better..
-        # However, this is untested since this plugin was only tested with STL support
-        if self._revision_major >= 25 and PluginRegistry.getInstance().isActivePlugin("3MFReader"):
-            _file_formats_first_choice.append("3mf")
-
-        if PluginRegistry.getInstance().isActivePlugin("STLReader"):
+        if "3mf" in self._reader_for_file_format.keys():
+            if self._revision_major >= 25:
+                _file_formats_first_choice.append("3mf")
+        if "stl" in self._reader_for_file_format.keys():
             _file_formats_first_choice.append("stl")
-
         return _file_formats_first_choice
 
     def preRead(self, options):
