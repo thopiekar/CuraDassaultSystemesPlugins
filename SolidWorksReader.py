@@ -391,6 +391,7 @@ class SolidWorksReader(CommonCOMReader):
         if "sw_previous_active_file" in options.keys():
             if options["sw_previous_active_file"] and "GetTitle" in dir(options["sw_previous_active_file"]):
                 error = ComConnector.getByVarInt()
+                # SolidWorks API: >= 20.0.x
                 options["app_instance"].ActivateDoc3(options["sw_previous_active_file"].GetTitle,
                                                      True,
                                                      SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
@@ -401,6 +402,7 @@ class SolidWorksReader(CommonCOMReader):
     def openForeignFile(self, options):
         open_file_paths = self.getOpenDocuments(options)
         
+        # SolidWorks API: X
         options["sw_previous_active_file"] = options["app_instance"].ActiveDoc
         # If the file has not been loaded open it!
         if not os.path.normpath(options["foreignFile"]) in open_file_paths:
@@ -414,6 +416,7 @@ class SolidWorksReader(CommonCOMReader):
             else:
                 raise NotImplementedError("Unknown extension. Something went terribly wrong!")
     
+            # SolidWorks API: 2008 FCS (Rev 16.0)
             documentSpecification = options["app_instance"].GetOpenDocSpec(options["foreignFile"])
     
             ## NOTE: SPEC: FileName
