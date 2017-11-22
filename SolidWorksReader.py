@@ -123,60 +123,101 @@ class SolidWorksReader(CommonCOMReader):
         except:
             return False
     
-    def isServiceStartingUp(self, version):
+    def isServiceStartingUp(self, version, keep_instance_running = False, options = {}):
         # Also shall confirm the correct major revision from the running instance
-        options = {"app_name": self.getVersionedServiceName(version), 
-                   }
+        if not options:
+            options = {"app_name": self.getVersionedServiceName(version), 
+                       }
         try:
-            self.startApp(options)
-            Logger.log("d", "options [1]: {}".format(repr(options)))
+            if "app_instance" not in options.keys():
+                self.startApp(options)
         except:
             Logger.logException("e", "Starting the service and getting the major revision number failed!")
         
         if "app_instance" in options.keys():
-            self.closeApp(options)
-            Logger.log("d", "options [2]: {}".format(repr(options)))
-            if not options["app_was_active"] and not self.getOpenDocuments(options):
-                Logger.log("d", "Looks like we opened SolidWorks and there are no open files. Let's close SolidWorks again!")
-                options["app_instance"].ExitApp()
-            self.postCloseApp(options)
-            Logger.log("d", "options [3]: {}".format(repr(options)))
-            return True
+            if not keep_instance_running:
+                self.closeApp(options)
+                if not options["app_was_active"] and not self.getOpenDocuments(options):
+                    Logger.log("d", "Looks like we opened SolidWorks and there are no open files. Let's close SolidWorks again!")
+                    options["app_instance"].ExitApp()
+                self.postCloseApp(options)
         else:
             Logger.log("e", "Starting service failed!")
-            return False
+            return (False, options)
+        
+        return (True, options)
     
-    def isServiceConfirmingMajorRevision(self, version):
+    def isServiceConfirmingMajorRevision(self, version, keep_instance_running = False, options = {}):
         # Also shall confirm the correct major revision from the running instance
-        options = {"app_name": self.getVersionedServiceName(version), 
-                   }
+        if not options:
+            options = {"app_name": self.getVersionedServiceName(version), 
+                       }
         revision = [-1,]
         try:
-            self.startApp(options)
-            Logger.log("d", "options [1]: {}".format(repr(options)))
+            if "app_instance" not in options.keys():
+                self.startApp(options)
             revision = self.updateRevisionNumber(options)
         except:
             Logger.logException("e", "Starting the service and getting the major revision number failed!")
         
         if "app_instance" in options.keys():
-            self.closeApp(options)
-            Logger.log("d", "options [2]: {}".format(repr(options)))
-            if not options["app_was_active"] and not self.getOpenDocuments(options):
-                Logger.log("d", "Looks like we opened SolidWorks and there are no open files. Let's close SolidWorks again!")
-                # SolidWorks API: ?
-                options["app_instance"].ExitApp()
-            self.postCloseApp(options)
-            Logger.log("d", "options [3]: {}".format(repr(options)))
+            if not keep_instance_running:
+                self.closeApp(options)
+                if not options["app_was_active"] and not self.getOpenDocuments(options):
+                    Logger.log("d", "Looks like we opened SolidWorks and there are no open files. Let's close SolidWorks again!")
+                    # SolidWorks API: ?
+                    options["app_instance"].ExitApp()
+                self.postCloseApp(options)
         else:
             Logger.log("e", "Starting service failed!")
-            return False
+            return (False, options)
         
         if revision[0] == version:
-            return True
+            return (True, options)
         
         Logger.log("e", "Revision does not fit to {}.x.y: {}".format(version, revision[0]))
-        return False
+        return (False, options)
     
+    def checkForBasicFunctions(self, version, keep_instance_running = False, options = {}):
+        functions_to_be_checked = ("OpenDoc7",
+                                   "CloseDoc",
+                                   )
+        
+        # Also shall confirm the correct major revision from the running instance
+        if not options:
+            options = {"app_name": self.getVersionedServiceName(version), 
+                       }
+        functions_found = True
+        try:
+            if "app_instance" not in options.keys():
+                self.startApp(options)
+            for func in functions_to_be_checked:
+                try:
+                    getattr(options["app_instance"], func)
+                except:
+                    Logger.logException("e", "Error which occurred when checking for some functions")
+                    functions_found = False
+        except:
+            Logger.logException("e", "Starting the service and checking for some functions failed!")
+        
+        if "app_instance" in options.keys():
+            if not keep_instance_running:
+                self.closeApp(options)
+                if not options["app_was_active"] and not self.getOpenDocuments(options):
+                    Logger.log("d", "Looks like we opened SolidWorks and there are no open files. Let's close SolidWorks again!")
+                    # SolidWorks API: ?
+                    options["app_instance"].ExitApp()
+                self.postCloseApp(options)
+        else:
+            Logger.log("e", "Starting service failed!")
+            return (False, options)
+        
+        if functions_found:
+            return (True, options)
+        else:
+            Logger.log("e", "Could not find some functions!")
+            return (False, options)
+
     def isVersionOperational(self, version):
         # Full set of checks for a working installation
         if not self.isServiceRegistered(version):
@@ -185,11 +226,17 @@ class SolidWorksReader(CommonCOMReader):
         if not self.isSoftwareInstallPath(version):
             Logger.log("w", "Found no executable for '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
             return False
-        if not self.isServiceStartingUp(version):
+        result, options = self.isServiceStartingUp(version, keep_instance_running = True)
+        if not result:
             Logger.log("w", "Couldn't start COM server '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
             return False
-        if not self.isServiceConfirmingMajorRevision(version):
+        result, options = self.isServiceConfirmingMajorRevision(version, keep_instance_running = True, options = options)
+        if not result:
             Logger.log("w", "COM server can't confirm the major version for '{}'. This is a rotten installation! Ignoring..".format(self.getVersionedServiceName(version)))
+            return False
+        result, options = self.checkForBasicFunctions(version, options = options)
+        if not result:
+            Logger.log("w", "Can't find some basic functions to control '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
             return False
         Logger.log("i", "Success! Installation of '{}' seems to be valid!".format(self.getVersionedServiceName(version)))
         return True
@@ -322,18 +369,6 @@ class SolidWorksReader(CommonCOMReader):
         Logger.log("d", "Started: %s", version_name)
 
         return options
-
-    def checkApp(self, options):
-        functions_to_be_checked = ("OpenDoc",
-                                   "CloseDoc",
-                                   )
-        for func in functions_to_be_checked:
-            try:
-                getattr(options["app_instance"], func)
-            except:
-                Logger.logException("e", "Error which occurred when checking for a valid app instance")
-                return False
-        return True
 
     def closeApp(self, options):
         if "app_frame" in options.keys():
