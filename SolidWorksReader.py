@@ -424,7 +424,7 @@ class SolidWorksReader(CommonCOMReader):
     def getOpenDocuments(self, options):
         open_files = []
         # SolidWorks API: 98Plus
-        open_file = options["app_instance"].GetFirstDocument2
+        open_file = options["app_instance"].GetFirstDocument
         while open_file:
             open_files.append(open_file)
             open_file = open_file.GetNext
