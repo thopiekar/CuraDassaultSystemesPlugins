@@ -10,12 +10,12 @@ import winreg
 
 # Uranium/Cura
 from UM.i18n import i18nCatalog # @UnresolvedImport
-from UM.Message import Message # @UnresolvedImport
 from UM.Logger import Logger # @UnresolvedImport
 from UM.Math.Matrix import Matrix # @UnresolvedImport
 from UM.Math.Vector import Vector # @UnresolvedImport
 from UM.Math.Quaternion import Quaternion # @UnresolvedImport
 from UM.Mesh.MeshReader import MeshReader # @UnresolvedImport
+from UM.Message import Message # @UnresolvedImport
 from UM.PluginRegistry import PluginRegistry # @UnresolvedImport
 from UM.Preferences import Preferences # @UnresolvedImport
 
