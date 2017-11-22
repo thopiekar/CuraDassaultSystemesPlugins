@@ -62,6 +62,11 @@ class SolidWorksReader(CommonCOMReader):
         
         # Check for operational installations
         self.updateOperationalInstallations()
+        Preferences.getInstance().addPreference("cura_solidworks/checks_at_initialization", False)
+
+    @property
+    def checksAtInitialization(self):
+        return Preferences.getInstance().getValue("cura_solidworks/show_export_settings_always")
 
     @property
     def _app_names(self):
