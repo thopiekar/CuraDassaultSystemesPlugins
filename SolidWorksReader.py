@@ -66,7 +66,7 @@ class SolidWorksReader(CommonCOMReader):
 
     @property
     def checksAtInitialization(self):
-        return Preferences.getInstance().getValue("cura_solidworks/show_export_settings_always")
+        return Preferences.getInstance().getValue("cura_solidworks/checks_at_initialization")
 
     @property
     def _app_names(self):
