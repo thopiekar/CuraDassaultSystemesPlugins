@@ -163,6 +163,7 @@ class SolidWorksReader(CommonCOMReader):
             Logger.log("d", "options [2]: {}".format(repr(options)))
             if not options["app_was_active"] and not self.getOpenDocuments(options):
                 Logger.log("d", "Looks like we opened SolidWorks and there are no open files. Let's close SolidWorks again!")
+                # SolidWorks API: ?
                 options["app_instance"].ExitApp()
             self.postCloseApp(options)
             Logger.log("d", "options [3]: {}".format(repr(options)))
@@ -246,9 +247,11 @@ class SolidWorksReader(CommonCOMReader):
         return MeshReader.PreReadResult.accepted
 
     def setAppVisible(self, state, options):
+        # SolidWorks API: ?
         options["app_instance"].Visible = state
 
     def getAppVisible(self, state, options):
+        # SolidWorks API: ?
         return options["app_instance"].Visible
 
     def preStartApp(self, options):
@@ -264,6 +267,7 @@ class SolidWorksReader(CommonCOMReader):
 
     def updateRevisionNumber(self, options):
         # Getting revision after starting
+        # SolidWorks API: ?
         revision_number = options["app_instance"].RevisionNumber
         
         # Sometimes it can happen that the revision number returned here is None
@@ -288,18 +292,22 @@ class SolidWorksReader(CommonCOMReader):
         options = super().startApp(options)
 
         # Tell SolidWorks we operating in the background
+        # SolidWorks API: 2006 SP2 (Rev 14.2)
         options["app_operate_in_background"] = options["app_instance"].CommandInProgress # SolidWorks API: 2006 SP2 (Rev 14.2)
         options["app_instance"].CommandInProgress = True
 
         # Allow SolidWorks to run in the background and be invisible
+        # SolidWorks API: ?
         options["app_instance_user_control"] = options["app_instance"].UserControl
         options["app_instance"].UserControl = False
 
         # If the following property is true, then the SolidWorks frame will be visible on a call to ISldWorks::ActivateDoc2; so set it to false
+        # SolidWorks API: ?
         options["app_instance_visible"] = options["app_instance"].Visible
         options["app_instance"].Visible = False
 
         # Keep SolidWorks frame invisible when ISldWorks::ActivateDoc2 is called
+        # SolidWorks API: ?
         options["app_frame"] = options["app_instance"].Frame
         options["app_frame_invisible"] = options["app_frame"].KeepInvisible
         options["app_frame"].KeepInvisible = True
@@ -337,10 +345,13 @@ class SolidWorksReader(CommonCOMReader):
             # Or there is another sense..
             Logger.log("d", "Rolling back changes on app_instance.")
             if "app_instance_visible" in options.keys():
+                # SolidWorks API: ?
                 options["app_instance"].Visible = options["app_instance_visible"]
             if "app_instance_user_control" in options.keys():
+                # SolidWorks API: ?
                 options["app_instance"].UserControl = options["app_instance_user_control"]
             if "app_operate_in_background" in options.keys():
+                # SolidWorks API: 2006 SP2 (Rev 14.2)
                 options["app_instance"].CommandInProgress = options["app_operate_in_background"]
         Logger.log("d", "Closed SolidWorks.")
 
@@ -375,7 +386,8 @@ class SolidWorksReader(CommonCOMReader):
 
     def getOpenDocuments(self, options):
         open_files = []
-        open_file = options["app_instance"].GetFirstDocument
+        # SolidWorks API: 98Plus
+        open_file = options["app_instance"].GetFirstDocument2
         while open_file:
             open_files.append(open_file)
             open_file = open_file.GetNext
@@ -408,6 +420,7 @@ class SolidWorksReader(CommonCOMReader):
 
     def getDocumentsInDrawing(self, options):
         referenceModelNames = []
+        # SolidWorks API: ?
         swView = options["sw_model"].GetFirstView
         while not swView is None:
             if swView.GetReferencedModelName not in referenceModelNames and swView.GetReferencedModelName != "":
@@ -465,6 +478,7 @@ class SolidWorksReader(CommonCOMReader):
             documentSpecification.ReadOnly = True
     
             documentSpecificationObject = ComConnector.GetComObject(documentSpecification)
+            # SolidWorks API: 2008 FCS (Rev 16.0)
             options["sw_model"] = options["app_instance"].OpenDoc7(documentSpecificationObject)
 
             if documentSpecification.Warning:
@@ -501,6 +515,7 @@ class SolidWorksReader(CommonCOMReader):
 
         error = ComConnector.getByVarInt()
         # SolidWorks API: >= 20.0.x
+        # SolidWorks API: 2001Plus FCS (Rev. 10.0) - GetTitle
         options["app_instance"].ActivateDoc3(options["sw_model"].GetTitle,
                                              True,
                                              SolidWorksEnums.swRebuildOnActivation_e.swDontRebuildActiveDoc,
@@ -522,19 +537,24 @@ class SolidWorksReader(CommonCOMReader):
             # # Backing up everything
             if options["foreignFormat"].upper() == self._extension_assembly:
                 # Backing up current setting of swSTLComponentsIntoOneFile
+                # SolidWorks API: 2009 FCS (Rev 17.0)
                 swSTLComponentsIntoOneFileBackup = options["app_instance"].GetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile)
 
             # Backing up quality settings
+            # SolidWorks API: ?
             swExportSTLQualityBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality)
             # Backing up the default unit for STLs to mm, which is expected by Cura
+            # SolidWorks API: ?
             swExportStlUnitsBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits)
             # Backing up the output type temporary to binary
+            # SolidWorks API: 2009 FCS (Rev 17.0)
             swSTLBinaryFormatBackup = options["app_instance"].GetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat)
             
             # # Setting everything up
             # Export for assemblies
             if options["foreignFormat"].upper() == self._extension_assembly:
                 # Setting up swSTLComponentsIntoOneFile
+                # SolidWorks API: 2001 Plus FCS (Rev 10.0)
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, self._convert_assembly_into_once)
 
             # Setting  quality
@@ -545,46 +565,57 @@ class SolidWorksReader(CommonCOMReader):
             if quality_enum in range(0, 10) or quality_enum < 0:
                 Logger.log("i", "Using SolidWorks' coarse quality!")
                 # Give actual value for quality
+                # SolidWorks API: ?
                 options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
                                                                       SolidWorksEnums.swSTLQuality_e.swSTLQuality_Coarse)
             elif quality_enum in range(10, 20):
                 Logger.log("i", "Using SolidWorks' fine quality!")
                 # Give actual value for quality
+                # SolidWorks API: ?
                 options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
                                                                       SolidWorksEnums.swSTLQuality_e.swSTLQuality_Fine)
             else:
                 Logger.log("e", "Invalid value for quality: {}".format(quality_enum))
 
             # Changing the default unit for STLs to mm, which is expected by Cura
+            # SolidWorks API: ?
             options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits, SolidWorksEnums.swLengthUnit_e.swMM)
 
             # Changing the output type temporary to binary
+            # SolidWorks API: 2001 Plus FCS (Rev 10.0)
             options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat, True)
 
         options["sw_model"].SaveAs(options["tempFile"])
 
         if options["tempType"] == "stl":
             # Restoring swSTLBinaryFormat
+            # SolidWorks API: 2001 Plus FCS (Rev 10.0)
             options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat, swSTLBinaryFormatBackup)
 
             # Restoring swExportStlUnits
+            # SolidWorks API: ?
             options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits, swExportStlUnitsBackup)
 
             # Restoring swSTL*
+            # SolidWorks API: ?
             options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
                                                                   swExportSTLQualityBackup)
 
             if options["foreignFormat"].upper() == self._extension_assembly:
                 # Restoring swSTLComponentsIntoOneFile
+                # SolidWorks API: 2001 Plus FCS (Rev 10.0)
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, swSTLComponentsIntoOneFileBackup)
 
     def closeForeignFile(self, options):
         if "app_instance" in options.keys():
             if "sw_opened_file" in options.keys():
                 if options["sw_opened_file"]:
+                    # SolidWorks API: ?
+                    # SolidWorks API: 2001Plus FCS (Rev. 10.0) - GetTitle
                     options["app_instance"].CloseDoc(options["sw_model"].GetTitle)
             if "sw_drawing_opened" in options.keys():
                 if options["sw_drawing_opened"]:
+                    # SolidWorks API: ?
                     options["app_instance"].CloseDoc(options["sw_drawing"].GetTitle)
             self.activatePreviousFile(options)
 
