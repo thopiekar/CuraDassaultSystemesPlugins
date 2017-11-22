@@ -324,7 +324,9 @@ class SolidWorksReader(CommonCOMReader):
         return options
 
     def checkApp(self, options):
-        functions_to_be_checked = ("OpenDoc", "CloseDoc")
+        functions_to_be_checked = ("OpenDoc",
+                                   "CloseDoc",
+                                   )
         for func in functions_to_be_checked:
             try:
                 getattr(options["app_instance"], func)
