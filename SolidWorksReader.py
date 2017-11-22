@@ -127,13 +127,48 @@ class SolidWorksReader(CommonCOMReader):
         # Also shall confirm the correct major revision from the running instance
         options = {"app_name": self.getVersionedServiceName(version), 
                    }
-        self.startApp(options)
-        revision = self.updateRevisionNumber(options)
-        self.closeApp(options)
-        if not options["app_was_active"] and not self.getOpenDocuments(options):
-            Logger.log("d", "Looks like we opened SolidWorks and there are no open files. Let's close SolidWorks again!")
-            options["app_instance"].ExitApp()
-        self.postCloseApp(options)
+        try:
+            self.startApp(options)
+            Logger.log("d", "options [1]: {}".format(repr(options)))
+        except:
+            Logger.logException("e", "Starting the service and getting the major revision number failed!")
+        
+        if "app_instance" in options.keys():
+            self.closeApp(options)
+            Logger.log("d", "options [2]: {}".format(repr(options)))
+            if not options["app_was_active"] and not self.getOpenDocuments(options):
+                Logger.log("d", "Looks like we opened SolidWorks and there are no open files. Let's close SolidWorks again!")
+                options["app_instance"].ExitApp()
+            self.postCloseApp(options)
+            Logger.log("d", "options [3]: {}".format(repr(options)))
+            return True
+        else:
+            Logger.log("e", "Starting service failed!")
+            return False
+    
+    def isServiceConfirmingMajorRevision(self, version):
+        # Also shall confirm the correct major revision from the running instance
+        options = {"app_name": self.getVersionedServiceName(version), 
+                   }
+        revision = [-1,]
+        try:
+            self.startApp(options)
+            Logger.log("d", "options [1]: {}".format(repr(options)))
+            revision = self.updateRevisionNumber(options)
+        except:
+            Logger.logException("e", "Starting the service and getting the major revision number failed!")
+        
+        if "app_instance" in options.keys():
+            self.closeApp(options)
+            Logger.log("d", "options [2]: {}".format(repr(options)))
+            if not options["app_was_active"] and not self.getOpenDocuments(options):
+                Logger.log("d", "Looks like we opened SolidWorks and there are no open files. Let's close SolidWorks again!")
+                options["app_instance"].ExitApp()
+            self.postCloseApp(options)
+            Logger.log("d", "options [3]: {}".format(repr(options)))
+        else:
+            Logger.log("e", "Starting service failed!")
+            return False
         
         if revision[0] == version:
             return True
@@ -150,6 +185,9 @@ class SolidWorksReader(CommonCOMReader):
             Logger.log("w", "Found no executable for '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
             return False
         if not self.isServiceStartingUp(version):
+            Logger.log("w", "Couldn't start COM server '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
+            return False
+        if not self.isServiceConfirmingMajorRevision(version):
             Logger.log("w", "COM server can't confirm the major version for '{}'. This is a rotten installation! Ignoring..".format(self.getVersionedServiceName(version)))
             return False
         Logger.log("i", "Success! Installation of '{}' seems to be valid!".format(self.getVersionedServiceName(version)))
