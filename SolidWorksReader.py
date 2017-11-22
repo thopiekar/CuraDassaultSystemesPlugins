@@ -253,7 +253,7 @@ class SolidWorksReader(CommonCOMReader):
         
         return self._revision
 
-    def startApp(self, options):
+    def startApp(self, options, skip_update_revision_number = False):
         options = super().startApp(options)
 
         # Tell SolidWorks we operating in the background
@@ -273,7 +273,8 @@ class SolidWorksReader(CommonCOMReader):
         options["app_frame_invisible"] = options["app_frame"].KeepInvisible
         options["app_frame"].KeepInvisible = True
         
-        self.updateRevisionNumber(options)
+        if not skip_update_revision_number:
+            self.updateRevisionNumber(options)
         
         if self._revision_major in SolidWorkVersions.major_version_name.keys():
             version_name = SolidWorkVersions.major_version_name[self._revision_major]
