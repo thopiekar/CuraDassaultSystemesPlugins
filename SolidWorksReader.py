@@ -61,7 +61,7 @@ class SolidWorksReader(CommonCOMReader):
         self.root_component = None
         
         # Check for operational installations
-        Preferences.getInstance().addPreference("cura_solidworks/checks_at_initialization", False)
+        Preferences.getInstance().addPreference("cura_solidworks/checks_at_initialization", True)
         self.updateOperationalInstallations(skip_all_tests = not self.checksAtInitialization)
 
     @property
