@@ -60,6 +60,9 @@ class SolidWorksReader(CommonCOMReader):
 
         self.root_component = None
         
+        # Results of the validation checks of each version
+        self.technical_infos_per_version = {}
+        
         # Check for operational installations
         Preferences.getInstance().addPreference("cura_solidworks/checks_at_initialization", True)
         self.updateOperationalInstallations(skip_all_tests = not self.checksAtInitialization)
@@ -219,36 +222,57 @@ class SolidWorksReader(CommonCOMReader):
             return (False, options)
 
     def isVersionOperational(self, version):
+        info_dict = {
+                    "COM registered": False,
+                    "Executable found": False,
+                    "COM starting": False,
+                    "Revision number": False,
+                    "Functions available": False,
+                    
+                    }
         # Full set of checks for a working installation
         if not self.isServiceRegistered(version):
             Logger.log("w", "Found no COM service for '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
-            return False
+            return (False, info_dict)
+        info_dict["COM registered"] = True
+        
         if not self.isSoftwareInstallPath(version):
             Logger.log("w", "Found no executable for '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
-            return False
+            return (False, info_dict)
+        info_dict["Executable found"] = True
+        
         result, options = self.isServiceStartingUp(version, keep_instance_running = True)
         if not result:
             Logger.log("w", "Couldn't start COM server '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
-            return False
+            return (False, info_dict)
+        info_dict["COM starting"] = True
+        
         result, options = self.isServiceConfirmingMajorRevision(version, keep_instance_running = True, options = options)
         if not result:
             Logger.log("w", "COM server can't confirm the major version for '{}'. This is a rotten installation! Ignoring..".format(self.getVersionedServiceName(version)))
-            return False
+            return (False, info_dict)
+        info_dict["Revision number"] = True
+        
         result, options = self.checkForBasicFunctions(version, options = options)
         if not result:
             Logger.log("w", "Can't find some basic functions to control '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
-            return False
+            return (False, info_dict)
+        info_dict["Functions available"] = True
+        
         Logger.log("i", "Success! Installation of '{}' seems to be valid!".format(self.getVersionedServiceName(version)))
-        return True
+        return (True, info_dict)
     
     def updateOperationalInstallations(self, skip_all_tests = False):
+        self.technical_infos_per_version = {}
         versions = self.getServicesFromRegistry()
         self.operational_versions = []
         for version in versions:
             if skip_all_tests:
                 self.operational_versions.append(version)
                 continue
-            if self.isVersionOperational(version):
+            result, info = self.isVersionOperational(version)
+            self.technical_infos_per_version[version] = info
+            if result:
                 self.operational_versions.append(version)
     
     def isOperational(self):
