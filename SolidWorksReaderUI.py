@@ -4,20 +4,19 @@
 import os
 import threading
 
-from PyQt5.QtCore import Qt, QUrl, pyqtSignal, QObject
-from PyQt5.QtQml import QQmlComponent, QQmlContext
+# Uranium
+from UM.i18n import i18nCatalog # @UnresolvedImport
+from UM.Application import Application # @UnresolvedImport
+from UM.FlameProfiler import pyqtSlot # @UnresolvedImport
+from UM.Logger import Logger # @UnresolvedImport
+from UM.Preferences import Preferences # @UnresolvedImport
 
-from UM.FlameProfiler import pyqtSlot
-from UM.Application import Application
-from UM.PluginRegistry import PluginRegistry
-from UM.Logger import Logger
+# PyQt5
+from PyQt5.QtCore import Qt, QUrl, pyqtSignal, QObject # @UnresolvedImport
+from PyQt5.QtQml import QQmlComponent, QQmlContext # @UnresolvedImport
 
-from UM.i18n import i18nCatalog
-
-from UM.Preferences import Preferences
-
+# i18n
 catalog = i18nCatalog("SolidWorksPlugin")
-
 
 class SolidWorksReaderUI(QObject):
     show_config_ui_trigger = pyqtSignal()
