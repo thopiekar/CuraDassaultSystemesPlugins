@@ -155,10 +155,13 @@ class SolidWorksReader(CommonCOMReader):
         Logger.log("i", "Success! Installation of '{}' seems to be valid!".format(self.getVersionedServiceName(version)))
         return True
     
-    def updateOperationalInstallations(self):
+    def updateOperationalInstallations(self, skip_all_tests = False):
         versions = self.getServicesFromRegistry()
         self.operational_versions = []
         for version in versions:
+            if skip_all_tests:
+                self.operational_versions.append(version)
+                continue
             if self.isVersionOperational(version):
                 self.operational_versions.append(version)
     
