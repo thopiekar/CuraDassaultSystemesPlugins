@@ -93,6 +93,8 @@ class SolidWorksReader(CommonCOMReader):
                 i += 1
             except WindowsError: 
                 break
+        versions.sort()
+        versions.reverse()
         return versions
     
     def isServiceRegistered(self, major_version):
