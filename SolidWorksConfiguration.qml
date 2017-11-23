@@ -34,12 +34,12 @@ UM.Dialog
         width: Math.floor(screenScaleFactor * 350);
         height: Math.floor(screenScaleFactor * 130);
         anchors.fill: parent
+        UM.I18nCatalog{id: catalog; name: "SolidWorksPlugin"}
 
         Tab {
             title: "Conversion settings"
             GridLayout
             {
-                UM.I18nCatalog{id: catalog; name: "SolidWorksPlugin"}
                 Layout.fillWidth: true
                 columnSpacing: 16 * screenScaleFactor
                 rowSpacing: 10 * screenScaleFactor
