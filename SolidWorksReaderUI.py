@@ -48,7 +48,7 @@ class SolidWorksReaderUI(QObject):
         self._ui_lock.acquire()
         preference = Preferences.getInstance().getValue("cura_solidworks/show_export_settings_always")
         Logger.log("d", "Showing wizard {} needed.. (preference = {})".format(["is", "is not"][preference], repr(preference)))
-        if preference:
+        if not preference:
             self._ui_lock.release()
             return
         self._cancelled = False
