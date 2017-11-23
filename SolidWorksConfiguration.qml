@@ -31,8 +31,6 @@ UM.Dialog
     }
 
     TabView {
-        width: Math.floor(screenScaleFactor * 350);
-        height: Math.floor(screenScaleFactor * 130);
         anchors.fill: parent
         UM.I18nCatalog{id: catalog; name: "SolidWorksPlugin"}
 
