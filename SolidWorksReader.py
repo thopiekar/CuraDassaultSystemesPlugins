@@ -49,7 +49,7 @@ class SolidWorksReader(CommonCOMReader):
         self._revision_minor = 0
         self._revision_patch = 0
 
-        self._ui = SolidWorksReaderUI()
+        self._ui = SolidWorksReaderUI(self)
 
         self.quality_classes = {
                                 30 : "Fine (3D-printing)",

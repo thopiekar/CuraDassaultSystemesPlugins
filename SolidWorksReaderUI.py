@@ -21,8 +21,10 @@ catalog = i18nCatalog("SolidWorksPlugin")
 class SolidWorksReaderUI(QObject):
     show_config_ui_trigger = pyqtSignal()
 
-    def __init__(self):
+    def __init__(self, reader):
         super().__init__()
+
+        self._reader = reader
 
         Preferences.getInstance().addPreference("cura_solidworks/export_quality", 0)
         Preferences.getInstance().addPreference("cura_solidworks/show_export_settings_always", True)
