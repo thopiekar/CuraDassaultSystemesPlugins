@@ -24,7 +24,7 @@ UM.Dialog
     {
         if (visible)
         {
-            installationsDropdown.fillInstallationListWithEntries();
+            //installationsDropdown.fillInstallationListWithEntries();
             choiceDropdown.updateCurrentIndex();
             rememberChoiceCheckBox.checked = UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
             autoRotateCheckBox.checked = UM.Preferences.getValue("cura_solidworks/auto_rotate");
@@ -36,12 +36,13 @@ UM.Dialog
         UM.I18nCatalog{id: catalog; name: "SolidWorksPlugin"}
 
         Tab {
-            title: catalog.i18nc("@title:window", "Conversion settings")
+            title: catalog.i18nc("@title:tab", "Conversion settings");
             GridLayout
             {
                 Layout.fillWidth: true
                 columnSpacing: 16 * screenScaleFactor
                 rowSpacing: 10 * screenScaleFactor
+                Layout.margins: 10 * screenScaleFactor
                 columns: 1
 
                 Row
@@ -94,7 +95,7 @@ UM.Dialog
                     CheckBox
                     {
                         id: rememberChoiceCheckBox
-                        text: catalog.i18nc("@text:window", "Show wizard before opening SolidWorks files");
+                        text: catalog.i18nc("@label", "Show wizard before opening SolidWorks files");
                         checked: UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
                     }
                 }
@@ -104,7 +105,7 @@ UM.Dialog
                     CheckBox
                     {
                         id: autoRotateCheckBox
-                        text: catalog.i18nc("@text:window", "Automatically rotate opened file into normed orientation");
+                        text: catalog.i18nc("@label", "Automatically rotate opened file into normed orientation");
                         checked: UM.Preferences.getValue("cura_solidworks/auto_rotate");
                     }
                 }
@@ -112,6 +113,7 @@ UM.Dialog
         }
         Tab {
             title: catalog.i18nc("@title:tab", "BLA");
+            /*
             GridLayout
             {
                 Layout.fillWidth: true
@@ -122,11 +124,11 @@ UM.Dialog
                 Row {
                     width: parent.width
 
-                        Label {
-                            text: catalog.i18nc("@action:label", "Installation(s):");
-                            width: 100 * screenScaleFactor
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
+                    Label {
+                        text: catalog.i18nc("@label", "Installation(s):");
+                        width: 100 * screenScaleFactor
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
 
                     ComboBox
                     {
@@ -144,13 +146,14 @@ UM.Dialog
                             id: installationsModel
                             Component.onCompleted:
                             {
-                                append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Latest version (Recommended)"), code: 0 });
-                                append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Default version"), code: 9999 });
+                                append({ text: catalog.i18nc("@text:menu", "Latest version (Recommended)"), code: 0 });
+                                append({ text: catalog.i18nc("@text:menu", "Default version"), code: 9999 });
                             }
                         }
                     }
                 }
             }
+            */
         }
     }
 
