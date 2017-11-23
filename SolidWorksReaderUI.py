@@ -74,6 +74,18 @@ class SolidWorksReaderUI(QObject):
 
         self._ui_view.setFlags(self._ui_view.flags() & ~Qt.WindowCloseButtonHint & ~Qt.WindowMinimizeButtonHint & ~Qt.WindowMaximizeButtonHint)
 
+    @pyqtSlot(int, str)
+    def getTechnicalInfoPerVersion(self, revision, name):
+        return self.reader.technical_infos_per_version[revision][name]
+
+    @pyqtSlot(result=list)
+    def getVersionsList(self):
+        return list(self.reader.technical_infos_per_version.keys())
+    
+    @pyqtSlot(result=str)
+    def getFriendlyName(self):
+        return "SolidWorks" #self._reader.getFriendlyName(major_revision)
+
     @pyqtSlot()
     def onOkButtonClicked(self):
         Logger.log("d", "Clicked on OkButton")

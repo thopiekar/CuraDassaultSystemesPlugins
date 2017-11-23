@@ -14,8 +14,8 @@ UM.Dialog
     minimumWidth: Math.floor(screenScaleFactor * 365);
     // maximumWidth: width;
 
-    height: Math.floor(screenScaleFactor * 180);
-    minimumHeight: Math.floor(screenScaleFactor * 180);
+    height: Math.floor(screenScaleFactor * 250);
+    minimumHeight: Math.floor(screenScaleFactor * 250);
     // maximumHeight: height;
 
     title: catalog.i18nc("@title:window", "SolidWorks plugin: Configuration")
@@ -24,10 +24,10 @@ UM.Dialog
     {
         if (visible)
         {
-            //installationsDropdown.fillInstallationListWithEntries();
-            choiceDropdown.updateCurrentIndex();
-            rememberChoiceCheckBox.checked = UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
-            autoRotateCheckBox.checked = UM.Preferences.getValue("cura_solidworks/auto_rotate");
+            conversionTab.qualityDropdown.updateCurrentIndex();
+            conversionTab.showWizard.checked = UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
+            conversionTab.autoRotate.checked = UM.Preferences.getValue("cura_solidworks/auto_rotate");
+            installationsTab.versionDropdown.ensureListWithEntries();
         }
     }
 
@@ -37,6 +37,13 @@ UM.Dialog
 
         Tab {
             title: catalog.i18nc("@title:tab", "Conversion settings");
+            id: conversionTab
+            
+            property Item showWizard: item.showWizard
+            property Item autoRotate: item.autoRotateCheckBox
+            property Item qualityDropdown: item.qualityDropdown
+            property Item qualityModel: item.choiceModel
+            
             GridLayout
             {
                 Layout.fillWidth: true
@@ -45,6 +52,49 @@ UM.Dialog
                 Layout.margins: 10 * screenScaleFactor
                 columns: 1
 
+                property Item showWizard: showWizardCheckBox
+                property Item autoRotateCheckBox: autoRotateCheckBox
+                property Item qualityDropdown: qualityDropdown
+                property Item choiceModel: choiceModel
+
+                Row {
+                    width: parent.width
+
+                    Label {
+                        text: catalog.i18nc("@label", "First choice:");
+                        width: 100 * screenScaleFactor
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    ComboBox
+                    {
+                        id: installationsDropdown
+                        currentIndex: 0
+                        width: 240 * screenScaleFactor
+
+                        function fillInstallationListWithEntries()
+                        {
+                            model.insert(1, { text: "SolidWorks 2016", code: 24 });
+                        }
+
+                        //onActivated:
+                        //{
+                        //    var majorRevision = model.get(currentIndex).code;
+                        //    manager.
+                        //}
+
+                        model: ListModel
+                        {
+                            id: installationsModel
+                            
+                            Component.onCompleted:
+                            {
+                                append({ text: catalog.i18nc("@text:menu", "Latest installed version (Recommended)"), code: -1 });
+                                append({ text: catalog.i18nc("@text:menu", "Default version"), code: -2 });
+                            }
+                        }
+                    }
+                }
                 Row
                 {
                     width: parent.width
@@ -57,10 +107,10 @@ UM.Dialog
 
                     ComboBox
                     {
-                        id: choiceDropdown
+                        id: qualityDropdown
 
                         currentIndex: updateCurrentIndex()
-                        width: 225 * screenScaleFactor
+                        width: 240 * screenScaleFactor
 
                         function updateCurrentIndex()
                         {
@@ -75,6 +125,12 @@ UM.Dialog
                                 }
                             }
                             currentIndex = index;
+                        }
+
+                        function saveQualityCode()
+                        {
+                            var code = model.get(currentIndex).code;
+                            UM.Preferences.setValue("cura_solidworks/export_quality", code);
                         }
 
                         model: ListModel
@@ -94,7 +150,7 @@ UM.Dialog
                     width: parent.width
                     CheckBox
                     {
-                        id: rememberChoiceCheckBox
+                        id: showWizardCheckBox
                         text: catalog.i18nc("@label", "Show wizard before opening SolidWorks files");
                         checked: UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
                     }
@@ -112,8 +168,11 @@ UM.Dialog
             }
         }
         Tab {
-            title: catalog.i18nc("@title:tab", "BLA");
-            /*
+            title: catalog.i18nc("@title:tab", "Installation(s)");
+            id: installationsTab
+            
+            property Item versionDropdown: item.installationCheckDropdown
+            
             GridLayout
             {
                 Layout.fillWidth: true
@@ -121,39 +180,114 @@ UM.Dialog
                 rowSpacing: 10 * screenScaleFactor
                 columns: 1
 
+                property Item installationCheckDropdown: installationCheckDropdown
+
                 Row {
                     width: parent.width
 
-                    Label {
-                        text: catalog.i18nc("@label", "Installation(s):");
-                        width: 100 * screenScaleFactor
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
                     ComboBox
                     {
-                        id: installationsDropdown
+                        id: installationCheckDropdown
                         currentIndex: 0
-                        width: 242 * screenScaleFactor
+                        width: parent.width
 
-                        function fillInstallationListWithEntries()
+                        function ensureListWithEntries()
                         {
-                            model.insert(1, { text: "SolidWorks 2016", code: 24 });
+                            var versions = [24,25,26]; //manager.getVersionsList();
+                            var version = 0;
+                            model.clear();
+                            
+                            for(var i = 0; i < versions.length; ++i)
+                            {
+                                version = versions[i];
+                                model.append({ text: manager.getFriendlyName(), code: version });
+                            }
+                            currentIndex = 0;
+                            //updateCheckBoxes();
+                        }
+
+                        function updateCheckBoxes()
+                        {
+                            var code = model.get(currentIndex).code;
+                            checkCOMFound.checked = manager.getTechnicalInfoPerVersion(code, "COM registered");
+                            checkExecutableFound.checked = manager.getTechnicalInfoPerVersion(code, "Executable found");
+                            checkCOMStarting.checked = manager.getTechnicalInfoPerVersion(code, "COM starting");
+                            checkRevisionVerified.checked = manager.getTechnicalInfoPerVersion(code, "Revision number");
+                            checkFunctions.checked = manager.getTechnicalInfoPerVersion(code, "Functions available");
+                        }
+
+                        onActivated:
+                        {
+                            //updateCheckBoxes();
                         }
 
                         model: ListModel
                         {
                             id: installationsModel
+                            
                             Component.onCompleted:
                             {
-                                append({ text: catalog.i18nc("@text:menu", "Latest version (Recommended)"), code: 0 });
-                                append({ text: catalog.i18nc("@text:menu", "Default version"), code: 9999 });
+                                append({ text: "- Nothing found -", code: -3 });
                             }
                         }
                     }
                 }
+                Row
+                {
+                    width: parent.width
+                    CheckBox
+                    {
+                        id: checkCOMFound
+                        text: catalog.i18nc("@label", "COM service found");
+                        enabled: false;
+                        checked: false;
+                    }
+                }
+                Row
+                {
+                    width: parent.width
+                    CheckBox
+                    {
+                        id: checkExecutableFound
+                        text: catalog.i18nc("@label", "Executable found");
+                        enabled: false;
+                        checked: false;
+                    }
+                }
+                Row
+                {
+                    width: parent.width
+                    CheckBox
+                    {
+                        id: checkCOMStarting
+                        text: catalog.i18nc("@label", "COM starting");
+                        enabled: false;
+                        checked: false;
+                    }
+                }
+                Row
+                {
+                    width: parent.width
+                    CheckBox
+                    {
+                        id: checkRevisionVerified
+                        text: catalog.i18nc("@label", "Revision number");
+                        enabled: false;
+                        checked: false;
+                    }
+                }
+                Row
+                {
+                    width: parent.width
+                    CheckBox
+                    {
+                        id: checkFunctions
+                        text: catalog.i18nc("@label", "Functions available");
+                        enabled: false;
+                        checked: false;
+                    }
+                }
             }
-            */
         }
     }
 
@@ -164,9 +298,9 @@ UM.Dialog
             text: catalog.i18nc("@action:button", "Save")
             onClicked:
             {
-                UM.Preferences.setValue("cura_solidworks/export_quality", choiceModel.get(choiceDropdown.currentIndex).code);
-                UM.Preferences.setValue("cura_solidworks/show_export_settings_always", rememberChoiceCheckBox.checked);
-                UM.Preferences.setValue("cura_solidworks/auto_rotate", autoRotateCheckBox.checked);
+                conversionTab.qualityDropdown.saveQualityCode();
+                UM.Preferences.setValue("cura_solidworks/show_export_settings_always", conversionTab.showWizard.checked);
+                UM.Preferences.setValue("cura_solidworks/auto_rotate", conversionTab.autoRotate.checked);
                 close();
             }
             enabled: true
