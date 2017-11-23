@@ -37,7 +37,7 @@ UM.Dialog
         UM.I18nCatalog{id: catalog; name: "SolidWorksPlugin"}
 
         Tab {
-            title: "Conversion settings"
+            title: catalog.i18nc("@title:window", "Conversion settings")
             GridLayout
             {
                 Layout.fillWidth: true
