@@ -24,6 +24,7 @@ UM.Dialog
     {
         if (visible)
         {
+            installationsDropdown.fillInstallationListWithEntries();
             choiceDropdown.updateCurrentIndex();
             rememberChoiceCheckBox.checked = UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
             autoRotateCheckBox.checked = UM.Preferences.getValue("cura_solidworks/auto_rotate");
@@ -110,8 +111,46 @@ UM.Dialog
             }
         }
         Tab {
-            title: "Blue"
-            Rectangle { color: "blue" }
+            title: catalog.i18nc("@title:tab", "BLA");
+            GridLayout
+            {
+                Layout.fillWidth: true
+                columnSpacing: 16 * screenScaleFactor
+                rowSpacing: 10 * screenScaleFactor
+                columns: 1
+
+                Row {
+                    width: parent.width
+
+                        Label {
+                            text: catalog.i18nc("@action:label", "Installation(s):");
+                            width: 100 * screenScaleFactor
+                            anchors.verticalCenter: parent.verticalCenter
+                        }
+
+                    ComboBox
+                    {
+                        id: installationsDropdown
+                        currentIndex: 0
+                        width: 242 * screenScaleFactor
+
+                        function fillInstallationListWithEntries()
+                        {
+                            model.insert(1, { text: "SolidWorks 2016", code: 24 });
+                        }
+
+                        model: ListModel
+                        {
+                            id: installationsModel
+                            Component.onCompleted:
+                            {
+                                append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Latest version (Recommended)"), code: 0 });
+                                append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Default version"), code: 9999 });
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
