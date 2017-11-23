@@ -78,6 +78,12 @@ class SolidWorksReader(CommonCOMReader):
     def getVersionedServiceName(self, version):
         return "SldWorks.Application.{}".format(version)
     
+    def getFriendlyName(self, revision_major):
+        if self._revision_major in SolidWorkVersions.major_version_name.keys():
+            return SolidWorkVersions.major_version_name[revision_major]
+        else:
+            return self.getVersionedServiceName(revision_major)
+    
     def getServicesFromRegistry(self):
         versions = []
         registered_services = winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, None)
@@ -386,10 +392,7 @@ class SolidWorksReader(CommonCOMReader):
         if not skip_update_revision_number:
             self.updateRevisionNumber(options)
         
-        if self._revision_major in SolidWorkVersions.major_version_name.keys():
-            version_name = SolidWorkVersions.major_version_name[self._revision_major]
-        else:
-            version_name = self.getVersionedServiceName(self._revision_major)
+        version_name = self.getFriendlyName(self._revision_major)
         Logger.log("d", "Started: %s", version_name)
 
         return options
