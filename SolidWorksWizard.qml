@@ -25,7 +25,7 @@ UM.Dialog
         if (visible)
         {
             qualityDropdown.updateCurrentIndex();
-            rememberChoiceCheckBox.checked = !UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
+            showAgainCheckBox.checked = UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
         }
     }
 
@@ -88,7 +88,7 @@ UM.Dialog
 
             CheckBox
             {
-                id: rememberChoiceCheckBox
+                id: showAgainCheckBox
                 text: catalog.i18nc("@text:window", "Show this dialog again")
                 checked: UM.Preferences.getValue("cura_solidworks/show_export_settings_always")
             }
@@ -103,7 +103,7 @@ UM.Dialog
             onClicked:
             {
                 UM.Preferences.setValue("cura_solidworks/export_quality", qualityModel.get(qualityDropdown.currentIndex).code);
-                UM.Preferences.setValue("cura_solidworks/show_export_settings_always", !rememberChoiceCheckBox.checked);
+                UM.Preferences.setValue("cura_solidworks/show_export_settings_always", showAgainCheckBox.checked);
                 manager.onOkButtonClicked();
             }
             enabled: true
