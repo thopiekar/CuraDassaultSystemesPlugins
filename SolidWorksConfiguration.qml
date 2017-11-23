@@ -49,11 +49,11 @@ UM.Dialog
                 {
                     width: parent.width
 
-                        Label {
-                            text: catalog.i18nc("@action:label", "Quality:")
-                            width: 100 * screenScaleFactor
-                            anchors.verticalCenter: parent.verticalCenter
-                        }
+                    Label {
+                        text: catalog.i18nc("@action:label", "Quality:")
+                        width: 100 * screenScaleFactor
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
 
                     ComboBox
                     {
