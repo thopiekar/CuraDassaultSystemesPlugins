@@ -119,7 +119,6 @@ UM.Dialog
         Button
         {
             id: ok_button
-            width: Math.floor(screenScaleFactor * 100);
             text: catalog.i18nc("@action:button", "Save")
             onClicked:
             {
@@ -133,7 +132,6 @@ UM.Dialog
         Button
         {
             id: cancel_button
-            width: Math.floor(screenScaleFactor * 100);
             text: catalog.i18nc("@action:button", "Cancel")
             onClicked:
             {
