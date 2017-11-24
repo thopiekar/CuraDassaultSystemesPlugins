@@ -22,8 +22,10 @@ from PyQt5.QtQml import QQmlComponent, QQmlContext # @UnresolvedImport
 i18n_catalog = i18nCatalog("SolidWorksPlugin")
 
 class SolidWorksUiCommons():
-    def _createDialog(self, dialog_qml):
-        path = QUrl.fromLocalFile(os.path.join(PluginRegistry.getInstance().getPluginPath(self.getPluginId()), dialog_qml))
+    def _createDialog(self, dialog_qml, directory = None):
+        if directory is None:
+            directory = PluginRegistry.getInstance().getPluginPath(self.getPluginId())
+        path = QUrl.fromLocalFile(os.path.join(directory, dialog_qml))
         self._qml_component = QQmlComponent(Application.getInstance()._engine, path)
 
         # We need access to engine (although technically we can't)
@@ -128,7 +130,7 @@ class SolidWorksReaderWizard(QObject, SolidWorksUiCommons):
 
     def _onShowConfigUI(self):
         if self._ui_view is None:
-            self._ui_view = self._createConfigUI("SolidWorksWizard.qml")
+            self._ui_view = self._createDialog("SolidWorksWizard.qml", directory = os.path.split(__file__)[0])
         self._ui_view.show()
 
     @pyqtSlot()
