@@ -77,13 +77,17 @@ UM.Dialog
                         {
                             var versions = manager.getVersionsList();
                             var version = 0;
+                            var operational = true;
                             model.clear();
                             
                             model.append({ text: catalog.i18nc("@text:menu", "Latest installed version (Recommended)"), code: -1 });
                             for(var i = 0; i < versions.length; ++i)
                             {
                                 version = versions[i];
-                                model.append({ text: manager.getFriendlyName(version), code: version });
+                                operational = manager.isVersionOperational(version);
+                                if (operational) {
+                                    model.append({ text: manager.getFriendlyName(version), code: version });
+                                }
                             }
                             model.append({ text: catalog.i18nc("@text:menu", "Default version"), code: -2 });
                             currentIndex = 0;

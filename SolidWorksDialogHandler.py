@@ -35,6 +35,10 @@ class SolidWorksUiCommons():
             Logger.log("e", "QQmlComponent errorString %s", self._qml_component.errorString())
         return dialog
 
+    @pyqtSlot(int, result = bool)
+    def isVersionOperational(self, major_version):
+        return major_version in self.reader.operational_versions
+
     @pyqtSlot(int, str, result = bool)
     def getTechnicalInfoPerVersion(self, revision, name):
         return bool(self.reader.technical_infos_per_version[revision][name])
