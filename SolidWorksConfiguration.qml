@@ -93,7 +93,6 @@ UM.Dialog
                                 }
                             }
                             model.append({ text: catalog.i18nc("@text:menu", "Default version"), code: -2 });
-                            
                             updateCurrentIndex()
                         }
 
@@ -256,7 +255,7 @@ UM.Dialog
 
                         onActivated:
                         {
-                            updateCheckBoxes(model.get(currentIndex).code);
+                            updateCheckBoxes(model.get(index).code);
                         }
                         
                         Component.onCompleted: {
