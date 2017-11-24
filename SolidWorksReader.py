@@ -36,6 +36,9 @@ class SolidWorksReader(CommonCOMReader):
         super().__init__("SolidWorks", "SldWorks.Application")
 
         Preferences.getInstance().addPreference("cura_solidworks/preferred_installation", -1)
+        Preferences.getInstance().addPreference("cura_solidworks/export_quality", 0)
+        Preferences.getInstance().addPreference("cura_solidworks/show_export_settings_always", True)
+        Preferences.getInstance().addPreference("cura_solidworks/auto_rotate", True)
 
         self._extension_part = ".SLDPRT"
         self._extension_assembly = ".SLDASM"
