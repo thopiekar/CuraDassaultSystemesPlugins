@@ -35,6 +35,8 @@ class SolidWorksReader(CommonCOMReader):
     def __init__(self):
         super().__init__("SolidWorks", "SldWorks.Application")
 
+        Preferences.getInstance().addPreference("cura_solidworks/preferred_installation", -1)
+
         self._extension_part = ".SLDPRT"
         self._extension_assembly = ".SLDASM"
         self._extension_drawing = ".SLDDRW"
@@ -74,6 +76,17 @@ class SolidWorksReader(CommonCOMReader):
     @property
     def _app_names(self):
         return [self.getVersionedServiceName(version) for version in self.operational_versions] + super()._app_names
+    
+    @property
+    def _prefered_app_name(self):
+        installation_code = int(Preferences.getInstance().getValue("cura_solidworks/preferred_installation"))
+        if installation_code is -1:
+            return None # We have no preference
+        elif installation_code is -2:
+            return self._default_app_name # Use system default service
+        elif installation_code in self.operational_versions:
+            return self.getVersionedServiceName(installation_code) # Use chosen version
+        return None
     
     def getVersionedServiceName(self, version):
         return "SldWorks.Application.{}".format(version)

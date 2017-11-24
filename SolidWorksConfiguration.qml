@@ -25,6 +25,7 @@ UM.Dialog
         if (visible)
         {
             conversionTab.qualityDropdown.updateCurrentIndex();
+            conversionTab.installations.updateCurrentIndex();
             conversionTab.showWizard.checked = UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
             conversionTab.autoRotate.checked = UM.Preferences.getValue("cura_solidworks/auto_rotate");
         }
@@ -42,6 +43,7 @@ UM.Dialog
             property Item autoRotate: item.autoRotateCheckBox
             property Item qualityDropdown: item.qualityDropdown
             property Item qualityModel: item.choiceModel
+            property Item installations: item.installationsDropdown
             
             GridLayout
             {
@@ -55,6 +57,7 @@ UM.Dialog
                 property Item autoRotateCheckBox: autoRotateCheckBox
                 property Item qualityDropdown: qualityDropdown
                 property Item choiceModel: choiceModel
+                property Item installationsDropdown: installationsDropdown
 
                 Row {
                     width: parent.width
@@ -90,18 +93,33 @@ UM.Dialog
                                 }
                             }
                             model.append({ text: catalog.i18nc("@text:menu", "Default version"), code: -2 });
-                            currentIndex = 0;
-                            updateCheckBoxes(model.get(currentIndex).code);
+                            
+                            updateCurrentIndex()
                         }
 
-                        //onActivated:
-                        //{
-                        //    var majorRevision = model.get(currentIndex).code;
-                        //    manager.
-                        //}
+                        function updateCurrentIndex()
+                        {
+                            var index = 0; // Top element in the list below by default
+                            var currentSetting = UM.Preferences.getValue("cura_solidworks/preferred_installation");
+                            for (var i = 0; i < model.count; ++i)
+                            {
+                                if (model.get(i).code == currentSetting)
+                                {
+                                    index = i;
+                                    break;
+                                }
+                            }
+                            currentIndex = index;
+                        }
 
                         Component.onCompleted: {
                             ensureListWithEntries();
+                        }
+
+                        function saveInstallationCode()
+                        {
+                            var code = model.get(currentIndex).code;
+                            UM.Preferences.setValue("cura_solidworks/preferred_installation", code);
                         }
 
                         model: ListModel
@@ -323,6 +341,7 @@ UM.Dialog
             onClicked:
             {
                 conversionTab.qualityDropdown.saveQualityCode();
+                conversionTab.installations.saveInstallationCode();
                 UM.Preferences.setValue("cura_solidworks/show_export_settings_always", conversionTab.showWizard.checked);
                 UM.Preferences.setValue("cura_solidworks/auto_rotate", conversionTab.autoRotate.checked);
                 close();
