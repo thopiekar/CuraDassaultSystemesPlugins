@@ -27,7 +27,6 @@ UM.Dialog
             conversionTab.qualityDropdown.updateCurrentIndex();
             conversionTab.showWizard.checked = UM.Preferences.getValue("cura_solidworks/show_export_settings_always");
             conversionTab.autoRotate.checked = UM.Preferences.getValue("cura_solidworks/auto_rotate");
-            installationsTab.versionDropdown.ensureListWithEntries();
         }
     }
 
@@ -72,9 +71,23 @@ UM.Dialog
                         currentIndex: 0
                         width: 240 * screenScaleFactor
 
-                        function fillInstallationListWithEntries()
+                        //style: UM.Theme.styles.combobox_color
+
+                        function ensureListWithEntries()
                         {
-                            model.insert(1, { text: "SolidWorks 2016", code: 24 });
+                            var versions = manager.getVersionsList();
+                            var version = 0;
+                            model.clear();
+                            
+                            model.append({ text: catalog.i18nc("@text:menu", "Latest installed version (Recommended)"), code: -1 });
+                            for(var i = 0; i < versions.length; ++i)
+                            {
+                                version = versions[i];
+                                model.append({ text: manager.getFriendlyName(version), code: version });
+                            }
+                            model.append({ text: catalog.i18nc("@text:menu", "Default version"), code: -2 });
+                            currentIndex = 0;
+                            updateCheckBoxes(model.get(currentIndex).code);
                         }
 
                         //onActivated:
@@ -83,14 +96,17 @@ UM.Dialog
                         //    manager.
                         //}
 
+                        Component.onCompleted: {
+                            ensureListWithEntries();
+                        }
+
                         model: ListModel
                         {
                             id: installationsModel
                             
                             Component.onCompleted:
                             {
-                                append({ text: catalog.i18nc("@text:menu", "Latest installed version (Recommended)"), code: -1 });
-                                append({ text: catalog.i18nc("@text:menu", "Default version"), code: -2 });
+                                append({ text: "NONE", code: -3 });
                             }
                         }
                     }
@@ -190,35 +206,39 @@ UM.Dialog
                         id: installationCheckDropdown
                         currentIndex: 0
                         width: parent.width
+                        editable: false
 
                         function ensureListWithEntries()
                         {
-                            var versions = [24,25,26]; //manager.getVersionsList();
+                            var versions = manager.getVersionsList();
                             var version = 0;
                             model.clear();
                             
                             for(var i = 0; i < versions.length; ++i)
                             {
                                 version = versions[i];
-                                model.append({ text: manager.getFriendlyName(), code: version });
+                                model.append({ text: manager.getFriendlyName(version), code: version });
                             }
                             currentIndex = 0;
-                            //updateCheckBoxes();
+                            updateCheckBoxes(model.get(currentIndex).code);
                         }
 
-                        function updateCheckBoxes()
+                        function updateCheckBoxes(rev_code)
                         {
-                            var code = model.get(currentIndex).code;
-                            checkCOMFound.checked = manager.getTechnicalInfoPerVersion(code, "COM registered");
-                            checkExecutableFound.checked = manager.getTechnicalInfoPerVersion(code, "Executable found");
-                            checkCOMStarting.checked = manager.getTechnicalInfoPerVersion(code, "COM starting");
-                            checkRevisionVerified.checked = manager.getTechnicalInfoPerVersion(code, "Revision number");
-                            checkFunctions.checked = manager.getTechnicalInfoPerVersion(code, "Functions available");
+                            checkCOMFound.checked = manager.getTechnicalInfoPerVersion(rev_code, "COM registered");
+                            checkExecutableFound.checked = manager.getTechnicalInfoPerVersion(rev_code, "Executable found");
+                            checkCOMStarting.checked = manager.getTechnicalInfoPerVersion(rev_code, "COM starting");
+                            checkRevisionVerified.checked = manager.getTechnicalInfoPerVersion(rev_code, "Revision number");
+                            checkFunctions.checked = manager.getTechnicalInfoPerVersion(rev_code, "Functions available");
                         }
 
                         onActivated:
                         {
-                            //updateCheckBoxes();
+                            updateCheckBoxes(model.get(currentIndex).code);
+                        }
+                        
+                        Component.onCompleted: {
+                            ensureListWithEntries();
                         }
 
                         model: ListModel
