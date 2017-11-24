@@ -11,12 +11,12 @@ import UM 1.1 as UM
 UM.Dialog
 {
     width: Math.floor(screenScaleFactor * 365);
-    minimumWidth: Math.floor(screenScaleFactor * 365);
-    // maximumWidth: width;
+    minimumWidth: width;
+    maximumWidth: width;
 
     height: Math.floor(screenScaleFactor * 250);
-    minimumHeight: Math.floor(screenScaleFactor * 250);
-    // maximumHeight: height;
+    minimumHeight: height;
+    maximumHeight: height;
 
     title: catalog.i18nc("@title:window", "SolidWorks plugin: Configuration")
 
