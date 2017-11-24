@@ -23,7 +23,7 @@ from UM.Preferences import Preferences # @UnresolvedImport
 from .CadIntegrationUtils.CommonComReader import CommonCOMReader # @UnresolvedImport
 from .CadIntegrationUtils.ComFactory import ComConnector # @UnresolvedImport
 from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions # @UnresolvedImport
-from .SolidWorksReaderUI import SolidWorksReaderUI # @UnresolvedImport
+from .SolidWorksDialogHandler import SolidWorksReaderWizard # @UnresolvedImport
 from .SystemUtils import convertDosPathIntoLongPath # @UnresolvedImport
 
 # 3rd-party
@@ -49,7 +49,7 @@ class SolidWorksReader(CommonCOMReader):
         self._revision_minor = 0
         self._revision_patch = 0
 
-        self._ui = SolidWorksReaderUI(self)
+        self._ui = SolidWorksReaderWizard(self)
 
         self.quality_classes = {
                                 30 : "Fine (3D-printing)",
