@@ -51,7 +51,7 @@ def register(app):
             no_valid_installation_message.setTitle("SolidWorks plugin")
             no_valid_installation_message.show()
         
-        plugin_data["extension"] = SolidWorksDialogHandler.SolidWorksDialogHandler()
+        plugin_data["extension"] = SolidWorksDialogHandler.SolidWorksDialogHandler(reader)
     else:
         not_correct_os_message = Message(i18n_catalog.i18nc("@info:status",
                                                             "Dear customer,\nyou are currently running this plugin on an operating system other than Windows. This plugin will only work on Windows with SolidWorks including an valid license. Please install this plugin on a Windows machine with SolidWorks installed.\n\nWith kind regards\n - Thomas Karl Pietrowski"

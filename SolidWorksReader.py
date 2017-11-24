@@ -23,7 +23,7 @@ from UM.Preferences import Preferences # @UnresolvedImport
 from .CadIntegrationUtils.CommonComReader import CommonCOMReader # @UnresolvedImport
 from .CadIntegrationUtils.ComFactory import ComConnector # @UnresolvedImport
 from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions # @UnresolvedImport
-from .SolidWorksReaderUI import SolidWorksReaderUI # @UnresolvedImport
+from .SolidWorksDialogHandler import SolidWorksReaderWizard # @UnresolvedImport
 from .SystemUtils import convertDosPathIntoLongPath # @UnresolvedImport
 
 # 3rd-party
@@ -34,6 +34,11 @@ i18n_catalog = i18nCatalog("SolidWorksPlugin")
 class SolidWorksReader(CommonCOMReader):
     def __init__(self):
         super().__init__("SolidWorks", "SldWorks.Application")
+
+        Preferences.getInstance().addPreference("cura_solidworks/preferred_installation", -1)
+        Preferences.getInstance().addPreference("cura_solidworks/export_quality", 0)
+        Preferences.getInstance().addPreference("cura_solidworks/show_export_settings_always", True)
+        Preferences.getInstance().addPreference("cura_solidworks/auto_rotate", True)
 
         self._extension_part = ".SLDPRT"
         self._extension_assembly = ".SLDASM"
@@ -49,7 +54,7 @@ class SolidWorksReader(CommonCOMReader):
         self._revision_minor = 0
         self._revision_patch = 0
 
-        self._ui = SolidWorksReaderUI()
+        self._ui = SolidWorksReaderWizard(self)
 
         self.quality_classes = {
                                 30 : "Fine (3D-printing)",
@@ -75,8 +80,25 @@ class SolidWorksReader(CommonCOMReader):
     def _app_names(self):
         return [self.getVersionedServiceName(version) for version in self.operational_versions] + super()._app_names
     
+    @property
+    def _prefered_app_name(self):
+        installation_code = int(Preferences.getInstance().getValue("cura_solidworks/preferred_installation"))
+        if installation_code is -1:
+            return None # We have no preference
+        elif installation_code is -2:
+            return self._default_app_name # Use system default service
+        elif installation_code in self.operational_versions:
+            return self.getVersionedServiceName(installation_code) # Use chosen version
+        return None
+    
     def getVersionedServiceName(self, version):
         return "SldWorks.Application.{}".format(version)
+    
+    def getFriendlyName(self, revision_major):
+        if self._revision_major in SolidWorkVersions.major_version_name.keys():
+            return SolidWorkVersions.major_version_name[revision_major]
+        else:
+            return self.getVersionedServiceName(revision_major)
     
     def getServicesFromRegistry(self):
         versions = []
@@ -386,10 +408,7 @@ class SolidWorksReader(CommonCOMReader):
         if not skip_update_revision_number:
             self.updateRevisionNumber(options)
         
-        if self._revision_major in SolidWorkVersions.major_version_name.keys():
-            version_name = SolidWorkVersions.major_version_name[self._revision_major]
-        else:
-            version_name = self.getVersionedServiceName(self._revision_major)
+        version_name = self.getFriendlyName(self._revision_major)
         Logger.log("d", "Started: %s", version_name)
 
         return options
