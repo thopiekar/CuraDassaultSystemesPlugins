@@ -474,6 +474,12 @@ class SolidWorksReader(CommonCOMReader):
         Logger.log("i", "Found {} open files..".format(len(open_files)))
         return open_files
 
+    def getOpenDocumentPaths(self, options):
+        paths = []
+        for document in self.getOpenDocuments(options):
+            paths.append(document.GetPathName)
+        return paths
+
     def getOpenDocumentFilepathDict(self, options):
         """
         Returns a dictionary of filepaths and document objects
@@ -524,7 +530,7 @@ class SolidWorksReader(CommonCOMReader):
         return options
 
     def openForeignFile(self, options):
-        open_file_paths = self.getOpenDocuments(options)
+        open_file_paths = self.getOpenDocumentPaths(options)
         
         # SolidWorks API: X
         options["sw_previous_active_file"] = options["app_instance"].ActiveDoc
