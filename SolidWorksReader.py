@@ -82,7 +82,12 @@ class SolidWorksReader(CommonCOMReader):
     
     @property
     def _prefered_app_name(self):
-        installation_code = int(Preferences.getInstance().getValue("cura_solidworks/preferred_installation"))
+        installation_code = Preferences.getInstance().getValue("cura_solidworks/preferred_installation")
+        if isinstance(installation_code, str):
+            installation_code = eval(installation_code)
+        if isinstance(installation_code, float):
+            installation_code = int(installation_code)
+        
         if installation_code is -1:
             return None # We have no preference
         elif installation_code is -2:
