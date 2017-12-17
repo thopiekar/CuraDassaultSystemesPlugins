@@ -21,12 +21,6 @@ class SolidWorksEnums:
         swDocASSEMBLY = 2
         swDocDRAWING = 3
 
-    class FileTypes:
-        # Enums to open files
-        SWpart = 1
-        SWassembly = 2
-        SWdrawing = 3
-
     swSTLQuality = 78
 
     class swLengthUnit_e:
