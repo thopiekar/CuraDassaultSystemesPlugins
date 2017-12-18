@@ -634,6 +634,9 @@ class SolidWorksReader(CommonCOMReader):
             # Backing up quality settings
             # SolidWorks API: ?
             swExportSTLQualityBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality)
+            swExportSTLAngleToleranceBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance)
+            swExportSTLDeviationBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation)
+            
             # Backing up the default unit for STLs to mm, which is expected by Cura
             # SolidWorks API: ?
             swExportStlUnitsBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits)
@@ -652,6 +655,8 @@ class SolidWorksReader(CommonCOMReader):
             # -1 := Custom (not supported yet!)
             #  0 := Coarse (as defined by SolidWorks)
             # 10 := Fine (as defined by SolidWorks)
+            # 20 := Coarse (3D printing profile)
+            # 30 := Fine (3D printing profile)
 
             if quality_enum in range(0, 10) or quality_enum < 0:
                 Logger.log("i", "Using SolidWorks' coarse quality!")
@@ -665,6 +670,24 @@ class SolidWorksReader(CommonCOMReader):
                 # SolidWorks API: ?
                 options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
                                                                       SolidWorksEnums.swSTLQuality_e.swSTLQuality_Fine)
+            elif quality_enum in range(20, 30):
+                Logger.log("i", "Using coarse quality for 3D printing!")
+                # Give actual value for quality
+                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
+                                                                      SolidWorksEnums.swSTLQuality_e.swSTLQuality_Custom)
+                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance,
+                                                                      5.0)
+                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation,
+                                                                      0.4)
+            elif quality_enum >= 30:
+                Logger.log("i", "Using fine quality for 3D printing!")
+                # Give actual value for quality
+                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
+                                                                      SolidWorksEnums.swSTLQuality_e.swSTLQuality_Custom)
+                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance,
+                                                                      1.0)
+                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation,
+                                                                      0.1)
             else:
                 Logger.log("e", "Invalid value for quality: {}".format(quality_enum))
 
@@ -688,6 +711,10 @@ class SolidWorksReader(CommonCOMReader):
             options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits, swExportStlUnitsBackup)
 
             # Restoring swSTL*
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance,
+                                                                  swExportSTLAngleToleranceBackup)
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation,
+                                                                  swExportSTLDeviationBackup)
             # SolidWorks API: ?
             options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
                                                                   swExportSTLQualityBackup)

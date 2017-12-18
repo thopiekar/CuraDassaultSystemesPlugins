@@ -176,6 +176,8 @@ UM.Dialog
 
                             Component.onCompleted:
                             {
+                                append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine (3D-printing)"), code: 30 });
+                                append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse (3D-printing)"), code: 20 });
                                 append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine (SolidWorks)"), code: 10 });
                                 append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse (SolidWorks)"), code: 0 });
                             }
