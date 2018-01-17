@@ -39,13 +39,13 @@ def getMetaData():
 
 def register(app):
     plugin_data = {}
-    if Platform.isWindows():        
+    if Platform.isWindows():
         reader = SolidWorksReader.SolidWorksReader()
         if reader.isOperational():
             plugin_data["mesh_reader"] = reader
         else:
             no_valid_installation_message = Message(i18n_catalog.i18nc("@info:status",
-                                                                       "Dear customer,\nwe could not find a valid installation of SolidWorks on your system. That means, that either SolidWorks is not installed or you don't own an valid license. Please make sure that running SolidWorks itself works without issues and/or contact your ICT.\n\nWith kind regards\n - Thomas Karl Pietrowski"
+                                                                       "Dear customer,\nWe could not find a valid installation of SolidWorks on your system. That means that either SolidWorks is not installed or you don't own an valid license. Please make sure that running SolidWorks itself works without issues and/or contact your ICT.\n\nWith kind regards\n - Thomas Karl Pietrowski"
                                                                        ),
                                                     0)
             no_valid_installation_message.setTitle("SolidWorks plugin")
@@ -54,7 +54,7 @@ def register(app):
         plugin_data["extension"] = SolidWorksDialogHandler.SolidWorksDialogHandler(reader)
     else:
         not_correct_os_message = Message(i18n_catalog.i18nc("@info:status",
-                                                            "Dear customer,\nyou are currently running this plugin on an operating system other than Windows. This plugin will only work on Windows with SolidWorks including an valid license. Please install this plugin on a Windows machine with SolidWorks installed.\n\nWith kind regards\n - Thomas Karl Pietrowski"
+                                                            "Dear customer,\nYou are currently running this plugin on an operating system other than Windows. This plugin will only work on Windows with SolidWorks installed, including an valid license. Please install this plugin on a Windows machine with SolidWorks installed.\n\nWith kind regards\n - Thomas Karl Pietrowski"
                                                             ),
                                          0)
         not_correct_os_message.setTitle("SolidWorks plugin")
