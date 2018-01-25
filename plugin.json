@@ -1,5 +1,6 @@
 {
     "name": "SolidWorks Integration",
+    "id" : "CuraSolidWorksPlugin",
     "author": "Thomas Karl Pietrowski",
     "email" : "thopiekar@gmail.com",
     "website" : "https://github.com/thopiekar/CuraSolidWorksPlugin",
