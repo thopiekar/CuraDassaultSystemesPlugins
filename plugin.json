@@ -4,7 +4,7 @@
     "author": "Thomas Karl Pietrowski",
     "email" : "thopiekar@gmail.com",
     "website" : "https://github.com/thopiekar/CuraSolidWorksPlugin",
-    "version": "0.4.4",
+    "version": "0.5.0",
     "supported_os" : ["Windows"],
     "description": "Gives you the possibility to open certain files using SolidWorks itself. Conversion is done by this plugin and additional optimizations.",
     "api": 4,
