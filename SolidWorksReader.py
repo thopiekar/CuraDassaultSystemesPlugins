@@ -137,9 +137,10 @@ class SolidWorksReader(CommonCOMReader):
             return False
     
     def getSoftwareInstallPath(self, major_version):
+        executable_extension = ".exe"
         regpath = "{}\shell\open\command".format(self.getVersionedServiceName(major_version))
         sldwks_exe = winreg.QueryValue(winreg.HKEY_CLASSES_ROOT, regpath)
-        sldwks_exe = sldwks_exe.split()[0]
+        sldwks_exe = sldwks_exe[:sldwks_exe.find(executable_extension)+len(executable_extension)+1]
         sldwks_exe = convertDosPathIntoLongPath(sldwks_exe)
         sldwkd_inst = os.path.split(sldwks_exe)[0]
         return sldwkd_inst
