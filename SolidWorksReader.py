@@ -577,7 +577,7 @@ class SolidWorksReader(CommonCOMReader):
                 Logger.log("w", "Warnings happened while opening your SolidWorks file!")
             if documentSpecification.Error:
                 Logger.log("e", "Errors happened while opening your SolidWorks file!")
-                error_message = Message(i18n_catalog.i18nc("@info:status", "SolidWorks reported errors, while opening your file. We recommend to solve these issues inside SolidWorks itself." ))
+                error_message = Message(i18n_catalog.i18nc("@info:status", "SolidWorks reported errors while opening your file. We recommend to solve these issues inside SolidWorks itself."))
                 error_message.setTitle("SolidWorks plugin")
                 error_message.show()
             options["sw_opened_file"] = True
@@ -589,11 +589,11 @@ class SolidWorksReader(CommonCOMReader):
         if options["foreignFormat"].upper() == self._extension_drawing:
             count_of_documents = self.countDocumentsInDrawing(options)
             if count_of_documents == 0:
-                error_message = Message(i18n_catalog.i18nc("@info:status", "Found no models inside your drawing. Could you please check it's content again and make sure one part or assembly is inside?\n\n Thanks!." ))
+                error_message = Message(i18n_catalog.i18nc("@info:status", "Found no models inside your drawing. Could you please check its content again and make sure one part or assembly is inside?\n\nThanks!"))
                 error_message.setTitle("SolidWorks plugin")
                 error_message.show()
             elif count_of_documents > 1:
-                error_message = Message(i18n_catalog.i18nc("@info:status", "Found more then one part or assembly inside your drawing. We currently only support drawings with exactly one part or assembly inside.\n\nSorry!" ))
+                error_message = Message(i18n_catalog.i18nc("@info:status", "Found more than one part or assembly inside your drawing. We currently only support drawings with exactly one part or assembly inside.\n\nSorry!"))
                 error_message.setTitle("SolidWorks plugin")
                 error_message.show()
             else:
