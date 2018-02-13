@@ -22,9 +22,9 @@ from UM.Preferences import Preferences # @UnresolvedImport
 # Our plugin
 from .CadIntegrationUtils.CommonComReader import CommonCOMReader # @UnresolvedImport
 from .CadIntegrationUtils.ComFactory import ComConnector # @UnresolvedImport
+from .CadIntegrationUtils.SystemUtils import convertDosPathIntoLongPath # @UnresolvedImport
 from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions # @UnresolvedImport
 from .SolidWorksDialogHandler import SolidWorksReaderWizard # @UnresolvedImport
-from .SystemUtils import convertDosPathIntoLongPath # @UnresolvedImport
 
 # 3rd-party
 import numpy
