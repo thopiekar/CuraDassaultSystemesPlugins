@@ -15,7 +15,7 @@ from UM.Preferences import Preferences # @UnresolvedImport
 
 # PyQt5
 from PyQt5.QtCore import pyqtSignal, pyqtSlot # @UnresolvedImport
-from PyQt5.QtCore import Qt, QUrl, QObject # @UnresolvedImport
+from PyQt5.QtCore import QUrl, QObject # @UnresolvedImport
 from PyQt5.QtQml import QQmlComponent, QQmlContext # @UnresolvedImport
 
 # i18n
@@ -61,14 +61,15 @@ class SolidWorksUiCommons():
         return self.reader.getFriendlyName(major_revision)
 
 class SolidWorksDialogHandler(QObject, Extension, SolidWorksUiCommons):
-    
     def __init__(self, reader, parent = None):
         super().__init__(parent)
         self.reader = reader
         self._config_dialog = None
         self._tutorial_dialog = None
-        self.addMenuItem(i18n_catalog.i18n("Configure"), self._openConfigDialog)
-        self.addMenuItem(i18n_catalog.i18n("Installation guide for SolidWorks macro"), self._openTutorialDialog)
+        self.addMenuItem(i18n_catalog.i18n("Configure"),
+                         self._openConfigDialog)
+        self.addMenuItem(i18n_catalog.i18n("Installation guide for SolidWorks macro"),
+                         self._openTutorialDialog)
 
     def _openConfigDialog(self):
         if not self._config_dialog:
@@ -113,7 +114,8 @@ class SolidWorksReaderWizard(QObject, SolidWorksUiCommons):
     def showConfigUI(self, blocking = False):
         self._ui_lock.acquire()
         preference = Preferences.getInstance().getValue("cura_solidworks/show_export_settings_always")
-        Logger.log("d", "Showing wizard {} needed.. (preference = {})".format(["is", "is not"][preference], repr(preference)))
+        Logger.log("d", "Showing wizard {} needed.. (preference = {})".format(["is", "is not"][preference],
+                                                                              repr(preference)))
         if not preference:
             self._ui_lock.release()
             return
