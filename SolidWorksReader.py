@@ -31,6 +31,9 @@ import numpy
 
 i18n_catalog = i18nCatalog("SolidWorksPlugin")
 
+DEBUG = False
+EMULATE_VERSION_API = 25
+
 class SolidWorksReader(CommonCOMReader):
     def __init__(self):
         super().__init__("SolidWorks", "SldWorks.Application")
@@ -49,10 +52,6 @@ class SolidWorksReader(CommonCOMReader):
                                       ]
 
         self._convert_assembly_into_once = True  # False is not implemented now!
-        self._revision = None
-        self._revision_major = 0
-        self._revision_minor = 0
-        self._revision_patch = 0
 
         self._ui = SolidWorksReaderWizard(self)
 
@@ -66,6 +65,7 @@ class SolidWorksReader(CommonCOMReader):
         self.root_component = None
         
         # Results of the validation checks of each version
+        self.operational_versions = []
         self.technical_infos_per_version = {}
         
         # Check for operational installations
@@ -100,7 +100,8 @@ class SolidWorksReader(CommonCOMReader):
         return "SldWorks.Application.{}".format(version)
     
     def getFriendlyName(self, revision_major):
-        if self._revision_major in SolidWorkVersions.major_version_name.keys():
+        Logger.log("d", "revision_major is: {}".format(repr(revision_major)))
+        if revision_major in SolidWorkVersions.major_version_name.keys():
             return SolidWorkVersions.major_version_name[revision_major]
         else:
             return self.getVersionedServiceName(revision_major)
@@ -187,7 +188,7 @@ class SolidWorksReader(CommonCOMReader):
         try:
             if "app_instance" not in options.keys():
                 self.startApp(options)
-            revision = self.updateRevisionNumber(options)
+            revision = self.getRevisionNumber(options)
         except:
             Logger.logException("e", "Starting the service and getting the major revision number failed!")
         
@@ -258,6 +259,13 @@ class SolidWorksReader(CommonCOMReader):
                     "Functions available": False,
                     
                     }
+        if DEBUG:
+            if EMULATE_VERSION_API is version:
+                Logger.log("d", "Passing all tests for API {}!".format(version))
+                for key in info_dict.keys():
+                    info_dict[key] = True
+                return (True, info_dict)
+        
         # Full set of checks for a working installation
         if not self.isServiceRegistered(version):
             Logger.log("w", "Found no COM service for '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
@@ -291,12 +299,17 @@ class SolidWorksReader(CommonCOMReader):
         return (True, info_dict)
     
     def updateOperationalInstallations(self, skip_all_tests = False):
+        self.operational_versions = []
         self.technical_infos_per_version = {}
         versions = self.getServicesFromRegistry()
-        self.operational_versions = []
+        if DEBUG:
+            if EMULATE_VERSION_API not in self.operational_versions:
+                versions.append(EMULATE_VERSION_API)
         for version in versions:
-            if skip_all_tests:
+            if skip_all_tests or DEBUG:
                 self.operational_versions.append(version)
+                if DEBUG:
+                    self.technical_infos_per_version[version] = self.isVersionOperational(version)[1]
                 continue
             result, info = self.isVersionOperational(version)
             self.technical_infos_per_version[version] = info
@@ -308,30 +321,6 @@ class SolidWorksReader(CommonCOMReader):
         if self.operational_versions:
             return True
         return False
-    
-    def _onAfterPluginsLoaded(self):
-        self._reader_for_file_format = {}
-
-        # Trying 3MF first because it describes the model much better..
-        # However, this is untested since this plugin was only tested with STL support
-        if PluginRegistry.getInstance().isActivePlugin("3MFReader"):
-            self._reader_for_file_format["3mf"] = PluginRegistry.getInstance().getPluginObject("3MFReader")
-        else:
-            Logger.log("w", "Could not find 3MFReader!")
-
-        super()._onAfterPluginsLoaded(clean_current_dict = False)
-
-        return None
-
-    @property
-    def _file_formats_first_choice(self):
-        _file_formats_first_choice = [] # Ordered list of preferred formats
-        if "3mf" in self._reader_for_file_format.keys():
-            if self._revision_major >= 25:
-                _file_formats_first_choice.append("3mf")
-        if "stl" in self._reader_for_file_format.keys():
-            _file_formats_first_choice.append("stl")
-        return _file_formats_first_choice
 
     def preRead(self, options):
         super().preRead(options)
@@ -364,57 +353,67 @@ class SolidWorksReader(CommonCOMReader):
 
         options["app_auto_rotate"] = Preferences.getInstance().getValue("cura_solidworks/auto_rotate")
 
-    def updateRevisionNumber(self, options):
+    def getRevisionNumber(self, options):
         # Getting revision after starting
+        if DEBUG:
+            return [EMULATE_VERSION_API, 0, 0]
+        
         # SolidWorks API: ?
         revision_number = options["app_instance"].RevisionNumber
-        
-        # Sometimes it can happen that the revision number returned here is None
-        # TODO: Ask DessaultSystemes how it comes and how to get the value properly without any issues..
         if isinstance(revision_number, str):
-            self._revision = [int(x) for x in revision_number.split(".")]
+            revision_number = [int(x) for x in revision_number.split(".")]
             try:
-                self._revision_major = self._revision[0]
-                self._revision_minor = self._revision[1]
-                self._revision_patch = self._revision[2]
+                Logger.log("d", "Mayor version is: {}".format(revision_number[0]))
+                Logger.log("d", "Minor version is: {}".format(revision_number[1]))
+                Logger.log("d", "Patch version is: {}".format(revision_number[2]))
             except IndexError:
-                Logger.logException("w", "Unable to parse revision number from SolidWorks.RevisionNumber. revision_number is: {revision_number}.".format(revision_number = self._revision))
+                Logger.logException("w", "Unable to parse revision number from SolidWorks.RevisionNumber. revision_number is: {revision_number}.".format(revision_number = revision_number))
             except:
-                Logger.logException("c", "Unexpected error: revision_number = {revision_number}".format(revision_number = self._revision))
-    
+                Logger.logException("c", "Unexpected error: revision_number = {revision_number}".format(revision_number = revision_number))
         else:
             Logger.log("c", "revision_number has a wrong type: {}".format(type(revision_number)))
         
-        return self._revision
+        return revision_number
 
-    def startApp(self, options, skip_update_revision_number = False):
-        options = super().startApp(options)
-
-        # Tell SolidWorks we operating in the background
-        # SolidWorks API: 2006 SP2 (Rev 14.2)
-        options["app_operate_in_background"] = options["app_instance"].CommandInProgress # SolidWorks API: 2006 SP2 (Rev 14.2)
-        options["app_instance"].CommandInProgress = True
-
-        # Allow SolidWorks to run in the background and be invisible
-        # SolidWorks API: ?
-        options["app_instance_user_control"] = options["app_instance"].UserControl
-        options["app_instance"].UserControl = False
-
-        # If the following property is true, then the SolidWorks frame will be visible on a call to ISldWorks::ActivateDoc2; so set it to false
-        # SolidWorks API: ?
-        options["app_instance_visible"] = options["app_instance"].Visible
-        options["app_instance"].Visible = False
-
-        # Keep SolidWorks frame invisible when ISldWorks::ActivateDoc2 is called
-        # SolidWorks API: ?
-        options["app_frame"] = options["app_instance"].Frame
-        options["app_frame_invisible"] = options["app_frame"].KeepInvisible
-        options["app_frame"].KeepInvisible = True
+    def startApp(self, options):
+        if DEBUG:
+            options["tempFileKeep"] = True
+        else:
+            super().startApp(options)
+            
+            # Tell SolidWorks we operating in the background
+            # SolidWorks API: 2006 SP2 (Rev 14.2)
+            options["app_operate_in_background"] = options["app_instance"].CommandInProgress # SolidWorks API: 2006 SP2 (Rev 14.2)
+            options["app_instance"].CommandInProgress = True
+            
+            # Allow SolidWorks to run in the background and be invisible
+            # SolidWorks API: ?
+            options["app_instance_user_control"] = options["app_instance"].UserControl
+            options["app_instance"].UserControl = False
+            
+            # If the following property is true, then the SolidWorks frame will be visible on a call to ISldWorks::ActivateDoc2; so set it to false
+            # SolidWorks API: ?
+            options["app_instance_visible"] = options["app_instance"].Visible
+            options["app_instance"].Visible = False
+            
+            # Keep SolidWorks frame invisible when ISldWorks::ActivateDoc2 is called
+            # SolidWorks API: ?
+            options["app_frame"] = options["app_instance"].Frame
+            options["app_frame_invisible"] = options["app_frame"].KeepInvisible
+            options["app_frame"].KeepInvisible = True
         
-        if not skip_update_revision_number:
-            self.updateRevisionNumber(options)
+        # Updating options["fileFormats"] depending on the started version
+        revision = self.getRevisionNumber(options)
+        options["fileFormats"] = [] # Ordered list of preferred formats
         
-        version_name = self.getFriendlyName(self._revision_major)
+        # WORKAROUND: DISABLING 3MF-USAGE. THE READER RETURNS A NODE, WHICH FAILS TO BE ROTATED.
+        #             WHEN DOING A SIMPLE ROATATION IT BLOWS UP THE MEMORY!
+        # TODO: Adding check whether all readers are available per format!
+        if revision[0] >= 25:
+            options["fileFormats"].append("3mf")
+        options["fileFormats"].append("stl")
+        
+        version_name = self.getFriendlyName(revision[0])
         Logger.log("d", "Started: %s", version_name)
 
         return options
@@ -536,6 +535,8 @@ class SolidWorksReader(CommonCOMReader):
         return options
 
     def openForeignFile(self, options):
+        if DEBUG:
+            return options
         open_file_paths = self.getOpenDocumentPaths(options)
         
         # SolidWorks API: X
@@ -625,13 +626,26 @@ class SolidWorksReader(CommonCOMReader):
         return options
 
     def exportFileAs(self, options, quality_enum = None):
+        if DEBUG:
+            _plugin_dir = os.path.split(__file__)[0]
+            _test_file = os.path.join(_plugin_dir,
+                                      "tests",
+                                      "file_type_examples",
+                                      "test_cube.{}".format(options["tempType"].lower())
+                                      )
+            if not os.path.isfile(_test_file):
+                Logger.log("w", "Test file not found!")
+            options["tempFile"] = _test_file
+            Logger.log("w", "Overriding 'tempFile' with: {}".format(options["tempFile"]))
+            return options
+        
         if options["tempType"] == "stl":
             # # Backing up everything
             if options["foreignFormat"].upper() == self._extension_assembly:
                 # Backing up current setting of swSTLComponentsIntoOneFile
                 # SolidWorks API: 2009 FCS (Rev 17.0)
                 swSTLComponentsIntoOneFileBackup = options["app_instance"].GetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile)
-
+            
             # Backing up quality settings
             # SolidWorks API: ?
             swExportSTLQualityBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality)
@@ -650,15 +664,16 @@ class SolidWorksReader(CommonCOMReader):
             if options["foreignFormat"].upper() == self._extension_assembly:
                 # Setting up swSTLComponentsIntoOneFile
                 # SolidWorks API: 2001 Plus FCS (Rev 10.0)
-                options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, self._convert_assembly_into_once)
-
+                options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile,
+                                                                self._convert_assembly_into_once)
+            
             # Setting  quality
             # -1 := Custom (not supported yet!)
             #  0 := Coarse (as defined by SolidWorks)
             # 10 := Fine (as defined by SolidWorks)
             # 20 := Coarse (3D printing profile)
             # 30 := Fine (3D printing profile)
-
+            
             if quality_enum in range(0, 10) or quality_enum < 0:
                 Logger.log("i", "Using SolidWorks' coarse quality!")
                 # Give actual value for quality
@@ -694,7 +709,8 @@ class SolidWorksReader(CommonCOMReader):
 
             # Changing the default unit for STLs to mm, which is expected by Cura
             # SolidWorks API: ?
-            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits, SolidWorksEnums.swLengthUnit_e.swMM)
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits,
+                                                                  SolidWorksEnums.swLengthUnit_e.swMM)
 
             # Changing the output type temporary to binary
             # SolidWorks API: 2001 Plus FCS (Rev 10.0)
@@ -705,11 +721,13 @@ class SolidWorksReader(CommonCOMReader):
         if options["tempType"] == "stl":
             # Restoring swSTLBinaryFormat
             # SolidWorks API: 2001 Plus FCS (Rev 10.0)
-            options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat, swSTLBinaryFormatBackup)
+            options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat,
+                                                            swSTLBinaryFormatBackup)
 
             # Restoring swExportStlUnits
             # SolidWorks API: ?
-            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits, swExportStlUnitsBackup)
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits,
+                                                                  swExportStlUnitsBackup)
 
             # Restoring swSTL*
             options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance,
@@ -724,6 +742,8 @@ class SolidWorksReader(CommonCOMReader):
                 # Restoring swSTLComponentsIntoOneFile
                 # SolidWorks API: 2001 Plus FCS (Rev 10.0)
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, swSTLComponentsIntoOneFileBackup)
+        
+        return options
 
     def closeForeignFile(self, options):
         if "app_instance" in options.keys():
@@ -738,25 +758,34 @@ class SolidWorksReader(CommonCOMReader):
                     options["app_instance"].CloseDoc(options["sw_drawing"].GetTitle)
             self.activatePreviousFile(options)
 
-    ## TODO: A functionality like this needs to come back as soon as we have something like a dependency resolver for plugins.
-    #def areReadersAvailable(self):
-    #    return bool(self._reader_for_file_format)
-
-    def nodePostProcessing(self, options, nodes):
+    def nodePostProcessing(self, options, scene_nodes, revision = None):
+        Logger.log("d", "Doing postprocessing on: {}".format(repr(scene_nodes)))
+        super().nodePostProcessing(options, scene_nodes)
         # # Auto-rotation
-        if options["app_auto_rotate"]:
+        if options["app_auto_rotate"] and options["tempType"] == "stl":
+            if not revision:
+                revision = self.getRevisionNumber(options)
             # TODO: Investigate how the status is on SolidWorks 2019 (now beta)
-            if self._revision_major >= 24:
+            if revision[0] >= 24:
+                Logger.log("d", "Reorientation of scene nodes")
                 # Known problem under SolidWorks 2016 until 2018:
                 # Exported models are rotated by -90 degrees. This rotates them back!
                 rotation = Quaternion.fromAngleAxis(math.radians(90), Vector.Unit_X)
-                zero_translation = Matrix(data=numpy.zeros(3))
-                for node in nodes:
-                    node.rotate(rotation)
-                    mesh_data = node.getMeshData()
-                    transformation_matrix = node.getLocalTransformation()
-                    transformation_matrix.setTranslation(zero_translation)
-                    mesh_data.getTransformed(transformation_matrix) 
-            return nodes
-
-    ## Decide if we need to use ascii or binary in order to read file
+                zero_translation = Matrix(data=numpy.zeros(3, dtype = numpy.float64))
+                for scene_node in scene_nodes:
+                    if not scene_node.hasChildren():
+                        scene_node.rotate(rotation)
+                        mesh_data = scene_node.getMeshData()
+                        transformation_matrix = scene_node.getLocalTransformation()
+                        transformation_matrix.setTranslation(zero_translation)
+                        scene_node.setMeshData(mesh_data.getTransformed(transformation_matrix))
+                    else:
+                        Logger.log("d", "Passing children: {}".format(repr(scene_node.getChildren())))
+                        self.nodePostProcessing(options, scene_node.getChildren(), revision = revision)
+            return scene_nodes
+        elif options["tempType"] == "3mf":
+            for scene_node in scene_nodes:
+                Logger.log("d", "node: {}".format(dir(scene_node)))
+                zero_translation = Matrix()
+                scene_node.setTransformation(zero_translation)
+            return scene_nodes
