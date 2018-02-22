@@ -762,12 +762,9 @@ class SolidWorksReader(CommonCOMReader):
         Logger.log("d", "Doing postprocessing on: {}".format(repr(scene_nodes)))
         super().nodePostProcessing(options, scene_nodes)
         # # Auto-rotation
-        if options["app_auto_rotate"] and options["tempType"] == "stl":
-            if not revision:
-                revision = self.getRevisionNumber(options)
-            # TODO: Investigate how the status is on SolidWorks 2019 (now beta)
-            if revision[0] >= 24:
-                Logger.log("d", "Reorientation of scene nodes")
+        if options["app_auto_rotate"]:
+            if options["tempType"] == "stl":
+                Logger.log("d", "Doing auto-rotation..")
                 # Known problem under SolidWorks 2016 until 2018:
                 # Exported models are rotated by -90 degrees. This rotates them back!
                 rotation = Quaternion.fromAngleAxis(math.radians(90), Vector.Unit_X)
@@ -782,10 +779,11 @@ class SolidWorksReader(CommonCOMReader):
                     else:
                         Logger.log("d", "Passing children: {}".format(repr(scene_node.getChildren())))
                         self.nodePostProcessing(options, scene_node.getChildren(), revision = revision)
-            return scene_nodes
-        elif options["tempType"] == "3mf":
-            for scene_node in scene_nodes:
-                Logger.log("d", "node: {}".format(dir(scene_node)))
-                zero_translation = Matrix()
-                scene_node.setTransformation(zero_translation)
-            return scene_nodes
+                return scene_nodes
+            elif options["tempType"] == "3mf":
+                for scene_node in scene_nodes:
+                    Logger.log("d", "node: {}".format(dir(scene_node)))
+                    zero_translation = Matrix()
+                    scene_node.setTransformation(zero_translation)
+                return scene_nodes
+        return scene_nodes
