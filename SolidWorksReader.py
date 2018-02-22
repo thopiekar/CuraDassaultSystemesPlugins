@@ -363,9 +363,12 @@ class SolidWorksReader(CommonCOMReader):
         if isinstance(revision_number, str):
             revision_number = [int(x) for x in revision_number.split(".")]
             try:
-                Logger.log("d", "Mayor version is: {}".format(revision_number[0]))
-                Logger.log("d", "Minor version is: {}".format(revision_number[1]))
-                Logger.log("d", "Patch version is: {}".format(revision_number[2]))
+                options["version_major"] = revision_number[0]
+                Logger.log("d", "Major version is: {}".format(options["version_major"]))
+                options["version_minor"] = revision_number[1]
+                Logger.log("d", "Minor version is: {}".format(options["version_minor"]))
+                options["version_patch"] = revision_number[2]
+                Logger.log("d", "Patch version is: {}".format(options["version_patch"]))
             except IndexError:
                 Logger.logException("w", "Unable to parse revision number from SolidWorks.RevisionNumber. revision_number is: {revision_number}.".format(revision_number = revision_number))
             except:
