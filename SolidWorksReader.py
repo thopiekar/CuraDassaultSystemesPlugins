@@ -100,10 +100,10 @@ class SolidWorksReader(CommonCOMReader):
         return "SldWorks.Application.{}".format(version)
     
     def getFriendlyName(self, revision_major):
-        Logger.log("d", "revision_major is: {}".format(repr(revision_major)))
         if revision_major in SolidWorkVersions.major_version_name.keys():
             return SolidWorkVersions.major_version_name[revision_major]
         else:
+            Logger.log("d", "revision_major: {}".format(repr(revision_major)))
             return self.getVersionedServiceName(revision_major)
     
     def getServicesFromRegistry(self):
