@@ -4,7 +4,7 @@
     "author": "Thomas Karl Pietrowski",
     "email" : "thopiekar@gmail.com",
     "website" : "https://thopiekar.eu/cura/plugins/cad/solidworks/",
-    "version": "0.5.4",
+    "version": "0.5.5",
     "supported_os" : ["Windows"],
     "description": "Gives you the possibility to open certain files using SolidWorks itself. Conversion is done by this plugin and additional optimizations.",
     "api": 4,
