@@ -26,16 +26,16 @@ class SolidWorksUiCommons():
         if directory is None:
             directory = PluginRegistry.getInstance().getPluginPath(self.getPluginId())
         path = QUrl.fromLocalFile(os.path.join(directory, dialog_qml))
-        self._qml_component = QQmlComponent(Application.getInstance()._engine, path)
+        component = QQmlComponent(Application.getInstance()._engine, path)
 
         # We need access to engine (although technically we can't)
-        self._qml_context = QQmlContext(Application.getInstance()._engine.rootContext())
-        self._qml_context.setContextProperty("manager", self)
-        dialog = self._qml_component.create(self._qml_context)
+        context = QQmlContext(Application.getInstance()._engine.rootContext())
+        context.setContextProperty("manager", self)
+        dialog = component.create(context)
         if dialog is None:
-            Logger.log("e", "QQmlComponent status %s", self._qml_component.status())
-            Logger.log("e", "QQmlComponent errorString %s", self._qml_component.errorString())
-        return dialog
+            Logger.log("e", "QQmlComponent status %s", component.status())
+            Logger.log("e", "QQmlComponent errorString %s", component.errorString())
+        return dialog, context, component
 
     @pyqtSlot(int, result = bool)
     def isVersionOperational(self, major_version):
@@ -73,12 +73,12 @@ class SolidWorksDialogHandler(QObject, Extension, SolidWorksUiCommons):
 
     def _openConfigDialog(self):
         if not self._config_dialog:
-            self._config_dialog = self._createDialog("SolidWorksConfiguration.qml")
+            self._config_dialog, self._config_context, self._config_component = self._createDialog("SolidWorksConfiguration.qml")
         self._config_dialog.show()
 
     def _openTutorialDialog(self):
         if not self._tutorial_dialog:
-            self._tutorial_dialog = self._createDialog("SolidWorksMacroTutorial.qml")
+            self._tutorial_dialog, self._tutorial_context, self._tutorial_component = self._createDialog("SolidWorksMacroTutorial.qml")
         self._tutorial_dialog.show()
 
     @pyqtSlot()
@@ -128,7 +128,7 @@ class SolidWorksReaderWizard(QObject, SolidWorksUiCommons):
 
     def _onShowConfigUI(self):
         if self._ui_view is None:
-            self._ui_view = self._createDialog("SolidWorksWizard.qml", directory = os.path.split(__file__)[0])
+            self._ui_view, self._ui_context, self._ui_component = self._createDialog("SolidWorksWizard.qml", directory = os.path.split(__file__)[0])
         self._ui_view.show()
 
     @pyqtSlot()
