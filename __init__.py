@@ -43,7 +43,7 @@ def register(app):
             plugin_data["mesh_reader"] = reader
         else:
             no_valid_installation_message = Message(i18n_catalog.i18nc("@info:status",
-                                                                       "Dear customer,\nWe could not find a valid installation of SolidWorks on your system. That means that either SolidWorks is not installed or you don't own an valid license. Please make sure that running SolidWorks itself works without issues and/or contact your ICT.\n\nWith kind regards\n - Thomas Karl Pietrowski"
+                                                                       "Dear customer,\nWe could not find a valid installation of 3DS SolidWorks on your system. That means that either 3DS SolidWorks is not installed or you don't own an valid license. Please make sure that running 3DS SolidWorks itself works without issues and/or contact your ICT.\n\nWith kind regards\n - Thomas Karl Pietrowski"
                                                                        ),
                                                     0)
             no_valid_installation_message.setTitle("SolidWorks plugin")
@@ -52,7 +52,7 @@ def register(app):
         plugin_data["extension"] = SolidWorksDialogHandler.SolidWorksDialogHandler(reader)
     else:
         not_correct_os_message = Message(i18n_catalog.i18nc("@info:status",
-                                                            "Dear customer,\nYou are currently running this plugin on an operating system other than Windows. This plugin will only work on Windows with SolidWorks installed, including an valid license. Please install this plugin on a Windows machine with SolidWorks installed.\n\nWith kind regards\n - Thomas Karl Pietrowski"
+                                                            "Dear customer,\nYou are currently running this plugin on an operating system other than Windows. This plugin will only work on Windows with 3DS SolidWorks installed, including an valid license. Please install this plugin on a Windows machine with 3DS SolidWorks installed.\n\nWith kind regards\n - Thomas Karl Pietrowski"
                                                             ),
                                          0)
         not_correct_os_message.setTitle("SolidWorks plugin")
