@@ -4,9 +4,7 @@
 import os
 
 # Uranium
-from UM.Logger import Logger # @UnresolvedImport
 from UM.Message import Message # @UnresolvedImport
-from UM.Resources import Resources # @UnresolvedImport
 from UM.Platform import Platform # @UnresolvedImport
 from UM.i18n import i18nCatalog # @UnresolvedImport
 
