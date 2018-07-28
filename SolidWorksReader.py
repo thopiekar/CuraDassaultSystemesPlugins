@@ -63,11 +63,11 @@ class SolidWorksReader(CommonCOMReader):
                                 }
 
         self.root_component = None
-        
+
         # Results of the validation checks of each version
         self.operational_versions = []
         self.technical_infos_per_version = {}
-        
+
         # Check for operational installations
         Preferences.getInstance().addPreference("cura_solidworks/checks_at_initialization", True)
         self.updateOperationalInstallations(skip_all_tests = not self.checksAtInitialization)
@@ -79,7 +79,7 @@ class SolidWorksReader(CommonCOMReader):
     @property
     def _app_names(self):
         return [self.getVersionedServiceName(version) for version in self.operational_versions] + super()._app_names
-    
+
     @property
     def _prefered_app_name(self):
         installation_code = Preferences.getInstance().getValue("cura_solidworks/preferred_installation")
@@ -87,7 +87,7 @@ class SolidWorksReader(CommonCOMReader):
             installation_code = eval(installation_code)
         if isinstance(installation_code, float):
             installation_code = int(installation_code)
-        
+
         if installation_code is -1:
             return None # We have no preference
         elif installation_code is -2:
@@ -95,17 +95,17 @@ class SolidWorksReader(CommonCOMReader):
         elif installation_code in self.operational_versions:
             return self.getVersionedServiceName(installation_code) # Use chosen version
         return None
-    
+
     def getVersionedServiceName(self, version):
         return "SldWorks.Application.{}".format(version)
-    
+
     def getFriendlyName(self, revision_major):
         if revision_major in SolidWorkVersions.major_version_name.keys():
             return SolidWorkVersions.major_version_name[revision_major]
         else:
             Logger.log("d", "revision_major: {}".format(repr(revision_major)))
             return self.getVersionedServiceName(revision_major)
-    
+
     def getServicesFromRegistry(self):
         versions = []
         registered_services = winreg.OpenKey(winreg.HKEY_CLASSES_ROOT, None)
@@ -122,12 +122,12 @@ class SolidWorksReader(CommonCOMReader):
                     except ValueError:
                         pass
                 i += 1
-            except WindowsError: 
+            except WindowsError:
                 break
         versions.sort()
         versions.reverse()
         return versions
-    
+
     def isServiceRegistered(self, major_version):
         sldwks_app_name = self.getVersionedServiceName(major_version)
         try:
@@ -136,7 +136,7 @@ class SolidWorksReader(CommonCOMReader):
             return True
         except:
             return False
-    
+
     def getSoftwareInstallPath(self, major_version):
         executable_extension = ".exe"
         regpath = "{}\shell\open\command".format(self.getVersionedServiceName(major_version))
@@ -145,7 +145,7 @@ class SolidWorksReader(CommonCOMReader):
         sldwks_exe = convertDosPathIntoLongPath(sldwks_exe)
         sldwkd_inst = os.path.split(sldwks_exe)[0]
         return sldwkd_inst
-    
+
     def isSoftwareInstallPath(self, major_version):
         # Also check whether the executable can be found..
         # Why? - SolidWorks 2017 lefts an key after uninstallation, which points to an orphaned path.
@@ -154,18 +154,18 @@ class SolidWorksReader(CommonCOMReader):
             return True
         except:
             return False
-    
+
     def isServiceStartingUp(self, version, keep_instance_running = False, options = {}):
         # Also shall confirm the correct major revision from the running instance
         if not options:
-            options = {"app_name": self.getVersionedServiceName(version), 
+            options = {"app_name": self.getVersionedServiceName(version),
                        }
         try:
             if "app_instance" not in options.keys():
                 self.startApp(options)
         except:
             Logger.logException("e", "Starting the service and getting the major revision number failed!")
-        
+
         if "app_instance" in options.keys():
             if not keep_instance_running:
                 self.closeApp(options)
@@ -176,13 +176,13 @@ class SolidWorksReader(CommonCOMReader):
         else:
             Logger.log("e", "Starting service failed!")
             return (False, options)
-        
+
         return (True, options)
-    
+
     def isServiceConfirmingMajorRevision(self, version, keep_instance_running = False, options = {}):
         # Also shall confirm the correct major revision from the running instance
         if not options:
-            options = {"app_name": self.getVersionedServiceName(version), 
+            options = {"app_name": self.getVersionedServiceName(version),
                        }
         revision = [-1,]
         try:
@@ -191,7 +191,7 @@ class SolidWorksReader(CommonCOMReader):
             revision = self.getRevisionNumber(options)
         except:
             Logger.logException("e", "Starting the service and getting the major revision number failed!")
-        
+
         if "app_instance" in options.keys():
             if not keep_instance_running:
                 self.closeApp(options)
@@ -203,21 +203,21 @@ class SolidWorksReader(CommonCOMReader):
         else:
             Logger.log("e", "Starting service failed!")
             return (False, options)
-        
+
         if revision[0] == version:
             return (True, options)
-        
+
         Logger.log("e", "Revision does not fit to {}.x.y: {}".format(version, revision[0]))
         return (False, options)
-    
+
     def checkForBasicFunctions(self, version, keep_instance_running = False, options = {}):
         functions_to_be_checked = ("OpenDoc7",
                                    "CloseDoc",
                                    )
-        
+
         # Also shall confirm the correct major revision from the running instance
         if not options:
-            options = {"app_name": self.getVersionedServiceName(version), 
+            options = {"app_name": self.getVersionedServiceName(version),
                        }
         functions_found = True
         try:
@@ -231,7 +231,7 @@ class SolidWorksReader(CommonCOMReader):
                     functions_found = False
         except:
             Logger.logException("e", "Starting the service and checking for some functions failed!")
-        
+
         if "app_instance" in options.keys():
             if not keep_instance_running:
                 self.closeApp(options)
@@ -243,7 +243,7 @@ class SolidWorksReader(CommonCOMReader):
         else:
             Logger.log("e", "Starting service failed!")
             return (False, options)
-        
+
         if functions_found:
             return (True, options)
         else:
@@ -257,7 +257,7 @@ class SolidWorksReader(CommonCOMReader):
                     "COM starting": False,
                     "Revision number": False,
                     "Functions available": False,
-                    
+
                     }
         if DEBUG:
             if EMULATE_VERSION_API is version:
@@ -265,39 +265,39 @@ class SolidWorksReader(CommonCOMReader):
                 for key in info_dict.keys():
                     info_dict[key] = True
                 return (True, info_dict)
-        
+
         # Full set of checks for a working installation
         if not self.isServiceRegistered(version):
             Logger.log("w", "Found no COM service for '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
             return (False, info_dict)
         info_dict["COM registered"] = True
-        
+
         if not self.isSoftwareInstallPath(version):
             Logger.log("w", "Found no executable for '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
             return (False, info_dict)
         info_dict["Executable found"] = True
-        
+
         result, options = self.isServiceStartingUp(version, keep_instance_running = True)
         if not result:
             Logger.log("w", "Couldn't start COM server '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
             return (False, info_dict)
         info_dict["COM starting"] = True
-        
+
         result, options = self.isServiceConfirmingMajorRevision(version, keep_instance_running = True, options = options)
         if not result:
             Logger.log("w", "COM server can't confirm the major version for '{}'. This is a rotten installation! Ignoring..".format(self.getVersionedServiceName(version)))
             return (False, info_dict)
         info_dict["Revision number"] = True
-        
+
         result, options = self.checkForBasicFunctions(version, options = options)
         if not result:
             Logger.log("w", "Can't find some basic functions to control '{}'! Ignoring..".format(self.getVersionedServiceName(version)))
             return (False, info_dict)
         info_dict["Functions available"] = True
-        
+
         Logger.log("i", "Success! Installation of '{}' seems to be valid!".format(self.getVersionedServiceName(version)))
         return (True, info_dict)
-    
+
     def updateOperationalInstallations(self, skip_all_tests = False):
         self.operational_versions = []
         self.technical_infos_per_version = {}
@@ -315,7 +315,7 @@ class SolidWorksReader(CommonCOMReader):
             self.technical_infos_per_version[version] = info
             if result:
                 self.operational_versions.append(version)
-    
+
     def isOperational(self):
         # Whenever there are versions, which work, we are good to go!
         if self.operational_versions:
@@ -357,7 +357,7 @@ class SolidWorksReader(CommonCOMReader):
         # Getting revision after starting
         if DEBUG:
             return [EMULATE_VERSION_API, 0, 0]
-        
+
         # SolidWorks API: ?
         revision_number = options["app_instance"].RevisionNumber
         if isinstance(revision_number, str):
@@ -375,7 +375,7 @@ class SolidWorksReader(CommonCOMReader):
                 Logger.logException("c", "Unexpected error: revision_number = {revision_number}".format(revision_number = revision_number))
         else:
             Logger.log("c", "revision_number has a wrong type: {}".format(type(revision_number)))
-        
+
         return revision_number
 
     def startApp(self, options):
@@ -383,39 +383,39 @@ class SolidWorksReader(CommonCOMReader):
             options["tempFileKeep"] = True
         else:
             super().startApp(options)
-            
+
             # Tell SolidWorks we operating in the background
             # SolidWorks API: 2006 SP2 (Rev 14.2)
             options["app_operate_in_background"] = options["app_instance"].CommandInProgress # SolidWorks API: 2006 SP2 (Rev 14.2)
             options["app_instance"].CommandInProgress = True
-            
+
             # Allow SolidWorks to run in the background and be invisible
             # SolidWorks API: ?
             options["app_instance_user_control"] = options["app_instance"].UserControl
             options["app_instance"].UserControl = False
-            
+
             # If the following property is true, then the SolidWorks frame will be visible on a call to ISldWorks::ActivateDoc2; so set it to false
             # SolidWorks API: ?
             options["app_instance_visible"] = options["app_instance"].Visible
             options["app_instance"].Visible = False
-            
+
             # Keep SolidWorks frame invisible when ISldWorks::ActivateDoc2 is called
             # SolidWorks API: ?
             options["app_frame"] = options["app_instance"].Frame
             options["app_frame_invisible"] = options["app_frame"].KeepInvisible
             options["app_frame"].KeepInvisible = True
-        
+
         # Updating options["fileFormats"] depending on the started version
         revision = self.getRevisionNumber(options)
         options["fileFormats"] = [] # Ordered list of preferred formats
-        
+
         # WORKAROUND: DISABLING 3MF-USAGE. THE READER RETURNS A NODE, WHICH FAILS TO BE ROTATED.
         #             WHEN DOING A SIMPLE ROATATION IT BLOWS UP THE MEMORY!
         # TODO: Adding check whether all readers are available per format!
         if revision[0] >= 25:
             options["fileFormats"].append("3mf")
         options["fileFormats"].append("stl")
-        
+
         version_name = self.getFriendlyName(revision[0])
         Logger.log("d", "Started: %s", version_name)
 
@@ -427,7 +427,7 @@ class SolidWorksReader(CommonCOMReader):
             Logger.log("d", "Rolling back changes on app_frame.")
             if "app_frame_invisible" in options.keys():
                 options["app_frame"].KeepInvisible = options["app_frame_invisible"]
-            
+
         if "app_instance" in options.keys():
             # Same here. By logic I would assume that we need to undo it, but when processing multiple parts, SolidWorks gets confused again..
             # Or there is another sense..
@@ -491,10 +491,10 @@ class SolidWorksReader(CommonCOMReader):
     def getOpenDocumentFilepathDict(self, options):
         """
         Returns a dictionary of filepaths and document objects
-        
+
         - Apparently we can't get .GetDocuments working
         """
-        
+
         open_files = self.getOpenDocuments(options)
         open_file_paths = {}
         for open_file in open_files:
@@ -521,7 +521,7 @@ class SolidWorksReader(CommonCOMReader):
                 referenceModelNames.append(swView.GetReferencedModelName)
             swView = swView.GetNextView
         return referenceModelNames
-    
+
     def countDocumentsInDrawing(self, options):
         return len(self.getDocumentsInDrawing(options))
 
@@ -541,7 +541,7 @@ class SolidWorksReader(CommonCOMReader):
         if DEBUG:
             return options
         open_file_paths = self.getOpenDocumentPaths(options)
-        
+
         # SolidWorks API: X
         options["sw_previous_active_file"] = options["app_instance"].ActiveDoc
         # If the file has not been loaded open it!
@@ -555,24 +555,24 @@ class SolidWorksReader(CommonCOMReader):
                 filetype = SolidWorksEnums.swDocumentTypes_e.swDocDRAWING
             else:
                 raise NotImplementedError("Unknown extension. Something went terribly wrong!")
-    
+
             # SolidWorks API: 2008 FCS (Rev 16.0)
             documentSpecification = options["app_instance"].GetOpenDocSpec(options["foreignFile"])
-    
+
             ## NOTE: SPEC: FileName
             #documentSpecification.FileName
-    
+
             ## NOTE: SPEC: DocumentType
             ## TODO: Really needed here?!
             documentSpecification.DocumentType = filetype
-    
+
             ## TODO: Test the impact of LightWeight = True
             #documentSpecification.LightWeight = True
             documentSpecification.Silent = True
-    
+
             ## TODO: Double check, whether file was really opened read-only..
             documentSpecification.ReadOnly = True
-    
+
             documentSpecificationObject = ComConnector.GetComObject(documentSpecification)
             # SolidWorks API: 2008 FCS (Rev 16.0)
             options["sw_model"] = options["app_instance"].OpenDoc7(documentSpecificationObject)
@@ -606,7 +606,7 @@ class SolidWorksReader(CommonCOMReader):
                 options["foreignFile"] = self.getDocumentsInDrawing(options)[0]
                 options["foreignFormat"] = os.path.splitext(options["foreignFile"])[1]
                 self.activatePreviousFile(options)
-                
+
                 options = self.openForeignFile(options)
 
         error = ComConnector.getByVarInt()
@@ -641,27 +641,27 @@ class SolidWorksReader(CommonCOMReader):
             options["tempFile"] = _test_file
             Logger.log("w", "Overriding 'tempFile' with: {}".format(options["tempFile"]))
             return options
-        
+
         if options["tempType"] == "stl":
             # # Backing up everything
             if options["foreignFormat"].upper() == self._extension_assembly:
                 # Backing up current setting of swSTLComponentsIntoOneFile
                 # SolidWorks API: 2009 FCS (Rev 17.0)
                 swSTLComponentsIntoOneFileBackup = options["app_instance"].GetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile)
-            
+
             # Backing up quality settings
             # SolidWorks API: ?
             swExportSTLQualityBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality)
             swExportSTLAngleToleranceBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance)
             swExportSTLDeviationBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation)
-            
+
             # Backing up the default unit for STLs to mm, which is expected by Cura
             # SolidWorks API: ?
             swExportStlUnitsBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits)
             # Backing up the output type temporary to binary
             # SolidWorks API: 2009 FCS (Rev 17.0)
             swSTLBinaryFormatBackup = options["app_instance"].GetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat)
-            
+
             # # Setting everything up
             # Export for assemblies
             if options["foreignFormat"].upper() == self._extension_assembly:
@@ -669,7 +669,7 @@ class SolidWorksReader(CommonCOMReader):
                 # SolidWorks API: 2001 Plus FCS (Rev 10.0)
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile,
                                                                 self._convert_assembly_into_once)
-            
+
             # Setting  quality
             # -1 := Custom (not supported yet!)
             #  0 := Coarse (as defined by SolidWorks)
@@ -745,7 +745,7 @@ class SolidWorksReader(CommonCOMReader):
                 # Restoring swSTLComponentsIntoOneFile
                 # SolidWorks API: 2001 Plus FCS (Rev 10.0)
                 options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, swSTLComponentsIntoOneFileBackup)
-        
+
         return options
 
     def closeForeignFile(self, options):

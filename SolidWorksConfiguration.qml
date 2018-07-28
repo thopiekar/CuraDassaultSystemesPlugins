@@ -38,13 +38,13 @@ UM.Dialog
         Tab {
             title: catalog.i18nc("@title:tab", "Conversion settings");
             id: conversionTab
-            
+
             property Item showWizard: item.showWizard
             property Item autoRotate: item.autoRotateCheckBox
             property Item qualityDropdown: item.qualityDropdown
             property Item qualityModel: item.choiceModel
             property Item installations: item.installationsDropdown
-            
+
             GridLayout
             {
                 Layout.fillWidth: true
@@ -82,7 +82,7 @@ UM.Dialog
                             var version = 0;
                             var operational = true;
                             model.clear();
-                            
+
                             model.append({ text: catalog.i18nc("@text:menu", "Latest installed version (Recommended)"), code: -1 });
                             for(var i = 0; i < versions.length; ++i)
                             {
@@ -124,7 +124,7 @@ UM.Dialog
                         model: ListModel
                         {
                             id: installationsModel
-                            
+
                             Component.onCompleted:
                             {
                                 append({ text: "NONE", code: -3 });
@@ -209,9 +209,9 @@ UM.Dialog
         Tab {
             title: catalog.i18nc("@title:tab", "Installation(s)");
             id: installationsTab
-            
+
             property Item versionDropdown: item.installationCheckDropdown
-            
+
             GridLayout
             {
                 Layout.fillWidth: true
@@ -236,7 +236,7 @@ UM.Dialog
                             var versions = manager.getVersionsList();
                             var version = 0;
                             model.clear();
-                            
+
                             for(var i = 0; i < versions.length; ++i)
                             {
                                 version = versions[i];
@@ -259,7 +259,7 @@ UM.Dialog
                         {
                             updateCheckBoxes(model.get(index).code);
                         }
-                        
+
                         Component.onCompleted: {
                             ensureListWithEntries();
                         }
@@ -267,7 +267,7 @@ UM.Dialog
                         model: ListModel
                         {
                             id: installationsModel
-                            
+
                             Component.onCompleted:
                             {
                                 append({ text: "- Nothing found -", code: -3 });
