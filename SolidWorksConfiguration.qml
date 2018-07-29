@@ -180,6 +180,7 @@ UM.Dialog
                                 append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse (3D-printing)"), code: 20 });
                                 append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Fine (SolidWorks)"), code: 10 });
                                 append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Coarse (SolidWorks)"), code: 0 });
+                                append({ text: catalog.i18nc("@option:curaSolidworksStlQuality", "Keep settings unchanged"), code: -1 });
                             }
                         }
                     }

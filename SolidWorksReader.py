@@ -90,6 +90,7 @@ class SolidWorksReader(CommonCOMReader):
                                 20 : "Coarse (3D-printing)",
                                 10 : "Fine (SolidWorks)",
                                  0 : "Coarse (SolidWorks)",
+                                -1 : "Keep settings unchanged",
                                 }
 
         self.root_component = None
@@ -703,13 +704,16 @@ class SolidWorksReader(CommonCOMReader):
                                                                 self._convert_assembly_into_once)
 
             # Setting  quality
-            # -1 := Custom (not supported yet!)
+            # -2 := Custom (not supported yet!)
+            # -1 := Keep settings unchanged
             #  0 := Coarse (as defined by SolidWorks)
             # 10 := Fine (as defined by SolidWorks)
             # 20 := Coarse (3D printing profile)
             # 30 := Fine (3D printing profile)
-            
-            if quality_enum in range(0, 10) or quality_enum < 0:
+
+            if quality_enum is -1 or quality_enum < -1:
+                Logger.log("i", "Using settings, which are currently set in SolidWorks!")
+            elif quality_enum in range(0, 10):
                 Logger.log("i", "Using SolidWorks' coarse quality!")
                 # Give actual value for quality
                 # SolidWorks API: ?
@@ -740,7 +744,7 @@ class SolidWorksReader(CommonCOMReader):
                 options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation,
                                                                       0.1)
             else:
-                Logger.log("e", "Invalid value for quality: {}".format(quality_enum))
+                Logger.log("e", "Invalid value for quality: {}".format(repr(quality_enum)))
 
             # Changing the default unit for STLs to mm, which is expected by Cura
             # SolidWorks API: ?
