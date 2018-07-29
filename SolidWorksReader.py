@@ -4,6 +4,7 @@
 # * Adding selection to separately import parts from an assembly
 
 # Build-ins
+import distutils.version.LooseVersion
 import math
 import os
 import winreg
@@ -21,6 +22,10 @@ from UM.Mesh.MeshReader import MeshReader # @UnresolvedImport
 from UM.Message import Message # @UnresolvedImport
 from UM.PluginRegistry import PluginRegistry # @UnresolvedImport
 from UM.Preferences import Preferences # @UnresolvedImport
+
+# Since 3.4: Register Mimetypes:
+if distutils.version.LooseVersion("3.4") <= distutils.version.LooseVersion(Application.getInstance().getVersion()):
+    from UM.MimeTypeDatabase import MimeTypeDatabase, MimeType
 
 # CIU
 from .CadIntegrationUtils.CommonComReader import CommonCOMReader # @UnresolvedImport
@@ -42,6 +47,24 @@ EMULATE_VERSION_API = 25
 class SolidWorksReader(CommonCOMReader):
     def __init__(self):
         super().__init__("SolidWorks", "SldWorks.Application")
+
+        if distutils.version.LooseVersion("3.4") <= distutils.version.LooseVersion(Application.getInstance().getVersion()):
+            MimeTypeDatabase.addMimeType(MimeType(name = "application/x-extension-sldprt",
+                                                  comment="3DS SolidWorks part file",
+                                                  suffixes=["sldprt"]
+                                                  )
+                                         )
+            MimeTypeDatabase.addMimeType(MimeType(name = "application/x-extension-sldasm",
+                                                  comment="3DS SolidWorks assembly file",
+                                                  suffixes=["sldasm"]
+                                                  )
+                                         )
+            MimeTypeDatabase.addMimeType(MimeType(name = "application/x-extension-slddrw",
+                                                  comment="3DS SolidWorks drawing file",
+                                                  suffixes=["slddrw"]
+                                                  )
+                                         )
+
 
         self.preference_namespace = "cura_solidworks"
         self.addPluginPreference("preferred_installation", -1)
