@@ -36,9 +36,6 @@ from .CadIntegrationUtils.SystemUtils import convertDosPathIntoLongPath # @Unres
 from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions # @UnresolvedImport
 from .SolidWorksDialogHandler import SolidWorksReaderWizard # @UnresolvedImport
 
-# 3rd-party
-import numpy
-
 i18n_catalog = i18nCatalog("SolidWorksPlugin")
 
 DEBUG = False
