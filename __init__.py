@@ -32,7 +32,7 @@ def getMetaData():
                                 },
                                ]
                 }
-    
+
     return metaData
 
 def register(app):
@@ -48,7 +48,7 @@ def register(app):
                                                     0)
             no_valid_installation_message.setTitle("SolidWorks plugin")
             no_valid_installation_message.show()
-        
+
         plugin_data["extension"] = SolidWorksDialogHandler.SolidWorksDialogHandler(reader)
     else:
         not_correct_os_message = Message(i18n_catalog.i18nc("@info:status",
@@ -57,5 +57,5 @@ def register(app):
                                          0)
         not_correct_os_message.setTitle("SolidWorks plugin")
         not_correct_os_message.show()
-    
+
     return plugin_data
