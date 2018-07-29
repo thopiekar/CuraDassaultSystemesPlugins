@@ -20,15 +20,15 @@ if Platform.isWindows():
 def getMetaData():
     metaData = {"mesh_reader": [{
                                  "extension": "SLDPRT",
-                                 "description": i18n_catalog.i18nc("@item:inlistbox", "SolidWorks part file")
+                                 "description": i18n_catalog.i18nc("@item:inlistbox", "3DS SolidWorks part file")
                                 },
                                 {
                                  "extension": "SLDASM",
-                                 "description": i18n_catalog.i18nc("@item:inlistbox", "SolidWorks assembly file")
+                                 "description": i18n_catalog.i18nc("@item:inlistbox", "3DS SolidWorks assembly file")
                                 },
                                 {
                                  "extension": "SLDDRW",
-                                 "description": i18n_catalog.i18nc("@item:inlistbox", "SolidWorks drawing file")
+                                 "description": i18n_catalog.i18nc("@item:inlistbox", "3DS SolidWorks drawing file")
                                 },
                                ]
                 }
