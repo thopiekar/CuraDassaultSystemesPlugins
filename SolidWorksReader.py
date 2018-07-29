@@ -672,112 +672,110 @@ class SolidWorksReader(CommonCOMReader):
             Logger.log("w", "Overriding 'tempFile' with: {}".format(options["tempFile"]))
             return options
 
-        if options["tempType"] == "stl":
-            # # Backing up everything
-            if options["foreignFormat"].upper() == self._extension_assembly:
-                # Backing up current setting of swSTLComponentsIntoOneFile
-                # SolidWorks API: 2009 FCS (Rev 17.0)
-                swSTLComponentsIntoOneFileBackup = options["app_instance"].GetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile)
-
-            # Backing up quality settings
-            # SolidWorks API: ?
-            swExportSTLQualityBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality)
-            swExportSTLAngleToleranceBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance)
-            swExportSTLDeviationBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation)
-
-            # Backing up the default unit for STLs to mm, which is expected by Cura
-            # SolidWorks API: ?
-            swExportStlUnitsBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits)
-            # Backing up the output type temporary to binary
+        # # Backing up everything
+        if options["foreignFormat"].upper() == self._extension_assembly:
+            # Backing up current setting of swSTLComponentsIntoOneFile
             # SolidWorks API: 2009 FCS (Rev 17.0)
-            swSTLBinaryFormatBackup = options["app_instance"].GetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat)
+            swSTLComponentsIntoOneFileBackup = options["app_instance"].GetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile)
 
-            # # Setting everything up
-            # Export for assemblies
-            if options["foreignFormat"].upper() == self._extension_assembly:
-                # Setting up swSTLComponentsIntoOneFile
-                # SolidWorks API: 2001 Plus FCS (Rev 10.0)
-                options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile,
+        # Backing up quality settings
+        # SolidWorks API: ?
+        swExportSTLQualityBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality)
+        swExportSTLAngleToleranceBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance)
+        swExportSTLDeviationBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation)
+
+        # Backing up the default unit for STLs to mm, which is expected by Cura
+        # SolidWorks API: ?
+        swExportStlUnitsBackup = options["app_instance"].GetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits)
+        # Backing up the output type temporary to binary
+        # SolidWorks API: 2009 FCS (Rev 17.0)
+        swSTLBinaryFormatBackup = options["app_instance"].GetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat)
+
+        # # Setting everything up
+        # Export for assemblies
+        if options["foreignFormat"].upper() == self._extension_assembly:
+            # Setting up swSTLComponentsIntoOneFile
+            # SolidWorks API: 2001 Plus FCS (Rev 10.0)
+            options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile,
                                                                 self._convert_assembly_into_once)
 
-            # Setting  quality
-            # -2 := Custom (not supported yet!)
-            # -1 := Keep settings unchanged
-            #  0 := Coarse (as defined by SolidWorks)
-            # 10 := Fine (as defined by SolidWorks)
-            # 20 := Coarse (3D printing profile)
-            # 30 := Fine (3D printing profile)
+        # Setting  quality
+        # -2 := Custom (not supported yet!)
+        # -1 := Keep settings unchanged
+        #  0 := Coarse (as defined by SolidWorks)
+        # 10 := Fine (as defined by SolidWorks)
+        # 20 := Coarse (3D printing profile)
+        # 30 := Fine (3D printing profile)
 
-            if quality_enum is -1 or quality_enum < -1:
-                Logger.log("i", "Using settings, which are currently set in SolidWorks!")
-            elif quality_enum in range(0, 10):
-                Logger.log("i", "Using SolidWorks' coarse quality!")
-                # Give actual value for quality
-                # SolidWorks API: ?
-                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
-                                                                      SolidWorksEnums.swSTLQuality_e.swSTLQuality_Coarse)
-            elif quality_enum in range(10, 20):
-                Logger.log("i", "Using SolidWorks' fine quality!")
-                # Give actual value for quality
-                # SolidWorks API: ?
-                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
-                                                                      SolidWorksEnums.swSTLQuality_e.swSTLQuality_Fine)
-            elif quality_enum in range(20, 30):
-                Logger.log("i", "Using coarse quality for 3D printing!")
-                # Give actual value for quality
-                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
-                                                                      SolidWorksEnums.swSTLQuality_e.swSTLQuality_Custom)
-                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance,
-                                                                      5.0)
-                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation,
-                                                                      0.4)
-            elif quality_enum >= 30:
-                Logger.log("i", "Using fine quality for 3D printing!")
-                # Give actual value for quality
-                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
-                                                                      SolidWorksEnums.swSTLQuality_e.swSTLQuality_Custom)
-                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance,
-                                                                      1.0)
-                options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation,
-                                                                      0.1)
-            else:
-                Logger.log("e", "Invalid value for quality: {}".format(repr(quality_enum)))
-
-            # Changing the default unit for STLs to mm, which is expected by Cura
+        if quality_enum is -1 or quality_enum < -1:
+            Logger.log("i", "Using settings, which are currently set in SolidWorks!")
+        elif quality_enum in range(0, 10):
+            Logger.log("i", "Using SolidWorks' coarse quality!")
+            # Give actual value for quality
             # SolidWorks API: ?
-            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits,
-                                                                  SolidWorksEnums.swLengthUnit_e.swMM)
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
+                                                                  SolidWorksEnums.swSTLQuality_e.swSTLQuality_Coarse)
+        elif quality_enum in range(10, 20):
+            Logger.log("i", "Using SolidWorks' fine quality!")
+            # Give actual value for quality
+            # SolidWorks API: ?
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
+                                                                  SolidWorksEnums.swSTLQuality_e.swSTLQuality_Fine)
+        elif quality_enum in range(20, 30):
+            Logger.log("i", "Using coarse quality for 3D printing!")
+            # Give actual value for quality
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
+                                                                  SolidWorksEnums.swSTLQuality_e.swSTLQuality_Custom)
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance,
+                                                                  5.0)
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation,
+                                                                  0.4)
+        elif quality_enum >= 30:
+            Logger.log("i", "Using fine quality for 3D printing!")
+            # Give actual value for quality
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
+                                                                  SolidWorksEnums.swSTLQuality_e.swSTLQuality_Custom)
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance,
+                                                                  1.0)
+            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation,
+                                                                  0.1)
+        else:
+            Logger.log("e", "Invalid value for quality: {}".format(repr(quality_enum)))
 
-            # Changing the output type temporary to binary
-            # SolidWorks API: 2001 Plus FCS (Rev 10.0)
-            options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat, True)
+        # Changing the default unit for STLs to mm, which is expected by Cura
+        # SolidWorks API: ?
+        options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits,
+                                                              SolidWorksEnums.swLengthUnit_e.swMM)
+
+        # Changing the output type temporary to binary
+        # SolidWorks API: 2001 Plus FCS (Rev 10.0)
+        options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat, True)
 
         options["sw_model"].SaveAs(options["tempFile"])
 
-        if options["tempType"] == "stl":
-            # Restoring swSTLBinaryFormat
+        ## Restoring swSTLBinaryFormat
+        # SolidWorks API: 2001 Plus FCS (Rev 10.0)
+        options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat,
+                                                        swSTLBinaryFormatBackup)
+
+        ## Restoring swExportStlUnits
+        # SolidWorks API: ?
+        options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits,
+                                                              swExportStlUnitsBackup)
+
+        ## Restoring swSTL*
+        options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance,
+                                                              swExportSTLAngleToleranceBackup)
+        options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation,
+                                                              swExportSTLDeviationBackup)
+        # SolidWorks API: ?
+        options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
+                                                              swExportSTLQualityBackup)
+
+        if options["foreignFormat"].upper() == self._extension_assembly:
+            # Restoring swSTLComponentsIntoOneFile
             # SolidWorks API: 2001 Plus FCS (Rev 10.0)
-            options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.swUserPreferenceToggle_e.swSTLBinaryFormat,
-                                                            swSTLBinaryFormatBackup)
-
-            # Restoring swExportStlUnits
-            # SolidWorks API: ?
-            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportStlUnits,
-                                                                  swExportStlUnitsBackup)
-
-            # Restoring swSTL*
-            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLAngleTolerance,
-                                                                  swExportSTLAngleToleranceBackup)
-            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceDoubleValue_e.swSTLDeviation,
-                                                                  swExportSTLDeviationBackup)
-            # SolidWorks API: ?
-            options["app_instance"].SetUserPreferenceIntegerValue(SolidWorksEnums.swUserPreferenceIntegerValue_e.swExportSTLQuality,
-                                                                  swExportSTLQualityBackup)
-
-            if options["foreignFormat"].upper() == self._extension_assembly:
-                # Restoring swSTLComponentsIntoOneFile
-                # SolidWorks API: 2001 Plus FCS (Rev 10.0)
-                options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, swSTLComponentsIntoOneFileBackup)
+            options["app_instance"].SetUserPreferenceToggle(SolidWorksEnums.UserPreferences.swSTLComponentsIntoOneFile, swSTLComponentsIntoOneFileBackup)
 
         return options
 
