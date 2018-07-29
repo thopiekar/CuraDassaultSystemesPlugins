@@ -8,7 +8,10 @@ import math
 import os
 import winreg
 
-# Uranium/Cura
+# 3rd-party
+import numpy
+
+# Cura/Uranium
 from UM.i18n import i18nCatalog # @UnresolvedImport
 from UM.Logger import Logger # @UnresolvedImport
 from UM.Math.Matrix import Matrix # @UnresolvedImport
@@ -19,10 +22,12 @@ from UM.Message import Message # @UnresolvedImport
 from UM.PluginRegistry import PluginRegistry # @UnresolvedImport
 from UM.Preferences import Preferences # @UnresolvedImport
 
-# Our plugin
+# CIU
 from .CadIntegrationUtils.CommonComReader import CommonCOMReader # @UnresolvedImport
 from .CadIntegrationUtils.ComFactory import ComConnector # @UnresolvedImport
 from .CadIntegrationUtils.SystemUtils import convertDosPathIntoLongPath # @UnresolvedImport
+
+# This plugin
 from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions # @UnresolvedImport
 from .SolidWorksDialogHandler import SolidWorksReaderWizard # @UnresolvedImport
 
