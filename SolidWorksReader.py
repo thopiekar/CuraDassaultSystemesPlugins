@@ -43,10 +43,12 @@ class SolidWorksReader(CommonCOMReader):
     def __init__(self):
         super().__init__("SolidWorks", "SldWorks.Application")
 
-        Preferences.getInstance().addPreference("cura_solidworks/preferred_installation", -1)
-        Preferences.getInstance().addPreference("cura_solidworks/export_quality", 0)
-        Preferences.getInstance().addPreference("cura_solidworks/show_export_settings_always", True)
-        Preferences.getInstance().addPreference("cura_solidworks/auto_rotate", True)
+        self.preference_namespace = "cura_solidworks"
+        self.addPluginPreference("preferred_installation", -1)
+        self.addPluginPreference("export_quality", 0)
+        self.addPluginPreference("show_export_settings_always", True)
+        self.addPluginPreference("auto_rotate", True)
+        self.addPluginPreference("checks_at_initialization", True)
 
         self._extension_part = ".SLDPRT"
         self._extension_assembly = ".SLDASM"
@@ -74,8 +76,10 @@ class SolidWorksReader(CommonCOMReader):
         self.technical_infos_per_version = {}
 
         # Check for operational installations
-        Preferences.getInstance().addPreference("cura_solidworks/checks_at_initialization", True)
         self.updateOperationalInstallations(skip_all_tests = not self.checksAtInitialization)
+
+    def addPluginPreference(self, name, default_value):
+        Preferences.getInstance().addPreference("{}/{}".format(self.preference_namespace, name), default_value)
 
     @property
     def checksAtInitialization(self):
