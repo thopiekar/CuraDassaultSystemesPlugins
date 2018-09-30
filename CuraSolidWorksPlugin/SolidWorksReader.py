@@ -4,7 +4,6 @@
 # * Adding selection to separately import parts from an assembly
 
 # Build-ins
-import distutils.version.LooseVersion
 import math
 import os
 import winreg
@@ -13,6 +12,7 @@ import winreg
 import numpy
 
 # Cura/Uranium
+from UM.Application import Application # @UnresolvedImport
 from UM.i18n import i18nCatalog # @UnresolvedImport
 from UM.Logger import Logger # @UnresolvedImport
 from UM.Math.Matrix import Matrix # @UnresolvedImport
@@ -22,9 +22,10 @@ from UM.Mesh.MeshReader import MeshReader # @UnresolvedImport
 from UM.Message import Message # @UnresolvedImport
 from UM.PluginRegistry import PluginRegistry # @UnresolvedImport
 from UM.Preferences import Preferences # @UnresolvedImport
+from UM.Version import Version
 
 # Since 3.4: Register Mimetypes:
-if distutils.version.LooseVersion("3.4") <= distutils.version.LooseVersion(Application.getInstance().getVersion()):
+if Version("3.4") <= Version(Application.getInstance().getVersion()):
     from UM.MimeTypeDatabase import MimeTypeDatabase, MimeType
 
 # CIU
@@ -45,7 +46,7 @@ class SolidWorksReader(CommonCOMReader):
     def __init__(self):
         super().__init__("SolidWorks", "SldWorks.Application")
 
-        if distutils.version.LooseVersion("3.4") <= distutils.version.LooseVersion(Application.getInstance().getVersion()):
+        if Version("3.4") <= Version(Application.getInstance().getVersion()):
             MimeTypeDatabase.addMimeType(MimeType(name = "application/x-extension-sldprt",
                                                   comment="3DS SolidWorks part file",
                                                   suffixes=["sldprt"]
