@@ -3,7 +3,7 @@
     "package_type": "plugin",
     "display_name": "3DS SolidWorks Integration",
     "description": "Gives you the possibility to open certain files using SolidWorks itself. Conversion is done by this plugin and additional optimizations.",
-    "package_version": "0.5.5",
+    "package_version": "0.5.6",
     "sdk_version": 5,
     "website": "https://github.com/Ultimaker/CuraDrivePlugin",
     "author": {
