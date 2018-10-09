@@ -49,15 +49,15 @@ class SolidWorksUiCommons():
 
     @pyqtSlot(result = list)
     def getVersionsList(self):
-        versions = list(self.reader.technical_infos_per_version.keys()) 
+        versions = list(self.reader.technical_infos_per_version.keys())
         versions.sort()
         versions.reverse()
         return versions
-    
+
     @pyqtSlot(result = int)
     def getVersionsCount(self):
         return int(len(list(self.reader.technical_infos_per_version.keys())))
-    
+
     @pyqtSlot(int, result = str)
     def getFriendlyName(self, major_revision):
         return self.reader.getFriendlyName(major_revision)
@@ -123,7 +123,7 @@ class SolidWorksReaderWizard(QObject, SolidWorksUiCommons):
             return
         self._cancelled = False
         self.show_config_ui_trigger.emit()
-        
+
         if blocking:
             Logger.log("d", "Waiting for UI to close..")
             self.waitForUIToClose()
