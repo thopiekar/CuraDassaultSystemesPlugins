@@ -4,7 +4,6 @@
 # * Adding selection to separately import parts from an assembly
 
 # Build-ins
-import distutils.version.LooseVersion
 import math
 import os
 import winreg
@@ -13,6 +12,7 @@ import winreg
 import numpy
 
 # Cura/Uranium
+from UM.Application import Application # @UnresolvedImport
 from UM.i18n import i18nCatalog # @UnresolvedImport
 from UM.Logger import Logger # @UnresolvedImport
 from UM.Math.Matrix import Matrix # @UnresolvedImport
@@ -22,9 +22,10 @@ from UM.Mesh.MeshReader import MeshReader # @UnresolvedImport
 from UM.Message import Message # @UnresolvedImport
 from UM.PluginRegistry import PluginRegistry # @UnresolvedImport
 from UM.Preferences import Preferences # @UnresolvedImport
+from UM.Version import Version
 
 # Since 3.4: Register Mimetypes:
-if distutils.version.LooseVersion("3.4") <= distutils.version.LooseVersion(Application.getInstance().getVersion()):
+if Version("3.4") <= Version(Application.getInstance().getVersion()):
     from UM.MimeTypeDatabase import MimeTypeDatabase, MimeType
 
 # CIU
@@ -35,6 +36,7 @@ from .CadIntegrationUtils.SystemUtils import convertDosPathIntoLongPath # @Unres
 # This plugin
 from .SolidWorksConstants import SolidWorksEnums, SolidWorkVersions # @UnresolvedImport
 from .SolidWorksDialogHandler import SolidWorksReaderWizard # @UnresolvedImport
+from .CuraCompat import Deprecations
 
 i18n_catalog = i18nCatalog("SolidWorksPlugin")
 
@@ -45,7 +47,7 @@ class SolidWorksReader(CommonCOMReader):
     def __init__(self):
         super().__init__("SolidWorks", "SldWorks.Application")
 
-        if distutils.version.LooseVersion("3.4") <= distutils.version.LooseVersion(Application.getInstance().getVersion()):
+        if Version("3.4") <= Version(Application.getInstance().getVersion()):
             MimeTypeDatabase.addMimeType(MimeType(name = "application/x-extension-sldprt",
                                                   comment="3DS SolidWorks part file",
                                                   suffixes=["sldprt"]
@@ -100,11 +102,11 @@ class SolidWorksReader(CommonCOMReader):
         self.updateOperationalInstallations(skip_all_tests = not self.checksAtInitialization)
 
     def addPluginPreference(self, name, default_value):
-        Preferences.getInstance().addPreference("{}/{}".format(self.preference_namespace, name), default_value)
+        Deprecations.getPreferences().addPreference("{}/{}".format(self.preference_namespace, name), default_value)
 
     @property
     def checksAtInitialization(self):
-        return Preferences.getInstance().getValue("cura_solidworks/checks_at_initialization")
+        return Deprecations.getPreferences().getValue("cura_solidworks/checks_at_initialization")
 
     @property
     def _app_names(self):
@@ -112,7 +114,7 @@ class SolidWorksReader(CommonCOMReader):
 
     @property
     def _prefered_app_name(self):
-        installation_code = Preferences.getInstance().getValue("cura_solidworks/preferred_installation")
+        installation_code = Deprecations.getPreferences().getValue("cura_solidworks/preferred_installation")
         if isinstance(installation_code, str):
             installation_code = eval(installation_code)
         if isinstance(installation_code, float):
@@ -373,7 +375,7 @@ class SolidWorksReader(CommonCOMReader):
         return options["app_instance"].Visible
 
     def preStartApp(self, options):
-        options["app_export_quality"] = Preferences.getInstance().getValue("cura_solidworks/export_quality")
+        options["app_export_quality"] = Deprecations.getPreferences().getValue("cura_solidworks/export_quality")
         if options["app_export_quality"] is None:
             options["app_export_quality"] = 10 # Fine profile as default!
         if isinstance(options["app_export_quality"], str):
@@ -381,7 +383,7 @@ class SolidWorksReader(CommonCOMReader):
         if isinstance(options["app_export_quality"], float):
             options["app_export_quality"] = int(options["app_export_quality"])
 
-        options["app_auto_rotate"] = Preferences.getInstance().getValue("cura_solidworks/auto_rotate")
+        options["app_auto_rotate"] = Deprecations.getPreferences().getValue("cura_solidworks/auto_rotate")
 
     def getRevisionNumber(self, options):
         # Getting revision after starting

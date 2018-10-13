@@ -18,6 +18,8 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot # @UnresolvedImport
 from PyQt5.QtCore import QUrl, QObject # @UnresolvedImport
 from PyQt5.QtQml import QQmlComponent, QQmlContext # @UnresolvedImport
 
+from .CuraCompat import ApplicationCompat, Deprecations
+
 # i18n
 i18n_catalog = i18nCatalog("SolidWorksPlugin")
 
@@ -26,10 +28,10 @@ class SolidWorksUiCommons():
         if directory is None:
             directory = PluginRegistry.getInstance().getPluginPath(self.getPluginId())
         path = QUrl.fromLocalFile(os.path.join(directory, dialog_qml))
-        component = QQmlComponent(Application.getInstance()._engine, path)
+        component = QQmlComponent(ApplicationCompat().qml_engine, path)
 
         # We need access to engine (although technically we can't)
-        context = QQmlContext(Application.getInstance()._engine.rootContext())
+        context = QQmlContext(ApplicationCompat().qml_engine.rootContext())
         context.setContextProperty("manager", self)
         dialog = component.create(context)
         if dialog is None:
@@ -47,15 +49,15 @@ class SolidWorksUiCommons():
 
     @pyqtSlot(result = list)
     def getVersionsList(self):
-        versions = list(self.reader.technical_infos_per_version.keys()) 
+        versions = list(self.reader.technical_infos_per_version.keys())
         versions.sort()
         versions.reverse()
         return versions
-    
+
     @pyqtSlot(result = int)
     def getVersionsCount(self):
         return int(len(list(self.reader.technical_infos_per_version.keys())))
-    
+
     @pyqtSlot(int, result = str)
     def getFriendlyName(self, major_revision):
         return self.reader.getFriendlyName(major_revision)
@@ -113,7 +115,7 @@ class SolidWorksReaderWizard(QObject, SolidWorksUiCommons):
 
     def showConfigUI(self, blocking = False):
         self._ui_lock.acquire()
-        preference = Preferences.getInstance().getValue("cura_solidworks/show_export_settings_always")
+        preference = Deprecations.getPreferences().getValue("cura_solidworks/show_export_settings_always")
         Logger.log("d", "Showing wizard {} needed.. (preference = {})".format(["is", "is not"][preference],
                                                                               repr(preference)))
         if not preference:
@@ -121,7 +123,7 @@ class SolidWorksReaderWizard(QObject, SolidWorksUiCommons):
             return
         self._cancelled = False
         self.show_config_ui_trigger.emit()
-        
+
         if blocking:
             Logger.log("d", "Waiting for UI to close..")
             self.waitForUIToClose()
